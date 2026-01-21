@@ -1,0 +1,27 @@
+# Build
+bin/
+obj/
+
+# VS / VS Code
+.vscode/
+.vs/
+
+# Rider
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# User secrets
+secrets.json
+appsettings.Development.json
+
+# Logs
+*.log
+
+# Database
+*.db
+
+# Migrations snapshots (opcional)
+*.snap
