@@ -30,4 +30,4 @@ MiniERP es un sistema ERP desarrollado en **.NET 8** con arquitectura limpia, au
 
 1. Clonar el repo:
 ```bash
-git clone https://github.com/TU-USUARIO/MiniERP.git
+git clone https://github.com/bradparedes/MiniERP.git
