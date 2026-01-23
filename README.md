@@ -1,6 +1,6 @@
 # MiniERP 🧾⚙️
 
-Sistema ERP modular desarrollado en **.NET 8/9** con arquitectura limpia, autenticación segura y control de roles.
+Sistema ERP modular desarrollado en **.NET 8** con arquitectura limpia, autenticación segura y control de roles.
 
 ---
 
