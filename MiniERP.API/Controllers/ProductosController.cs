@@ -20,7 +20,7 @@ namespace MiniERP.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = Roles.Admin + "," + Roles.User)]
+        [Authorize(Roles = $"{Roles.Admin},{Roles.User}")]
         public async Task<IActionResult> GetAll()
         {
             var productos = await _productoService.GetAllAsync();
@@ -34,15 +34,13 @@ namespace MiniERP.API.Controllers
 
         [HttpPut("{id:int}")]
         [Authorize(Roles = Roles.Admin)]
-        public async Task<IActionResult> Update(
-            int id,
-            [FromBody] UpdateProductoRequest request)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateProductoRequest request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var updated = await _productoService.UpdateAsync(id, request);
-            
+
             if (!updated)
                 return NotFound(new { message = "Producto no encontrado" });
 
@@ -55,15 +53,12 @@ namespace MiniERP.API.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            
+
             var producto = await _productoService.CreateAsync(request);
 
-            return CreatedAtAction(
-                nameof(GetAll),
-                new {id = producto.Id },
-                producto
-            );
+            return CreatedAtAction(nameof(GetAll), new { id = producto.Id }, producto);
         }
+
         [HttpDelete("{id:int}")]
         [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Delete(int id)

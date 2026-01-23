@@ -130,7 +130,7 @@ namespace MiniERP.API.Controllers
         // -------------------------
         // REGISTER ADMIN (SOLO ADMIN)
         // -------------------------
-        [Authorize(Roles = Roles.Admin)]
+        [Authorize(Roles = $"{Roles.Admin}")]
         [HttpPost("register-admin")]
         public async Task<IActionResult> RegisterAdmin([FromBody] RegisterRequest request)
         {
@@ -170,7 +170,7 @@ namespace MiniERP.API.Controllers
         // -------------------------
         // CAMBIAR ROL (SOLO ADMIN)
         // -------------------------
-        [Authorize(Roles = Roles.Admin)]
+        [Authorize(Roles = $"{Roles.Admin}")]
         [HttpPut("change-role")]
         public async Task<IActionResult> ChangeUserRole([FromBody] ChangeUserRoleRequest request)
         {
@@ -214,7 +214,7 @@ namespace MiniERP.API.Controllers
         // -------------------------
         // LISTAR USUARIOS (SOLO ADMIN)
         // -------------------------
-        [Authorize(Roles = Roles.Admin)]
+        [Authorize(Roles = $"{Roles.Admin}")]
         [HttpGet("usuarios")]
         public async Task<IActionResult> GetUsers()
         {
@@ -239,7 +239,7 @@ namespace MiniERP.API.Controllers
         // -------------------------
         // ELIMINAR USUARIO (SOLO ADMIN)
         // -------------------------
-        [Authorize(Roles = Roles.Admin)]
+        [Authorize(Roles = $"{Roles.Admin}")]
         [HttpDelete("usuarios/{id:int}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
@@ -311,7 +311,7 @@ namespace MiniERP.API.Controllers
         // -------------------------
         // RESET PASSWORD (SOLO ADMIN)
         // -------------------------
-        [Authorize(Roles = Roles.Admin)]
+        [Authorize(Roles = $"{Roles.Admin}")]
         [HttpPost("reset-password/{id:int}")]
         public async Task<IActionResult> ResetPassword(int id, [FromBody] ResetPasswordRequest request)
         {
