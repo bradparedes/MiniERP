@@ -10,9 +10,11 @@ namespace MiniERP.Infrastructure.Data
         {
         }
 
-        public DbSet<Producto> Productos { get; set; } = null!;
+        public DbSet<Producto> Productos => Set<Producto>();
 
         public DbSet<SecurityLog> SecurityLogs => Set<SecurityLog>();
+
+        public DbSet<Categoria> Categorias => Set<Categoria>();
 
         public DbSet<User> Users => Set<User>();
 
@@ -44,6 +46,22 @@ namespace MiniERP.Infrastructure.Data
                 entity.Property(e => e.Action).IsRequired();
                 entity.Property(e => e.Description).IsRequired();
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
+            });
+
+            modelBuilder.Entity<Categoria>(entity =>
+            {
+                entity.ToTable("Categorias");
+
+                entity.HasKey(c => c.Id);
+
+                entity.Property(c => c.Nombre)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.HasMany(c => c.Productos)
+                    .WithOne(p => p.Categoria)
+                    .HasForeignKey(p => p.CategoriaId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

@@ -53,6 +53,9 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddScoped<ISecurityLogService, SecurityLogService>();
 
+builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+
+
 // =====================
 // CONTROLLERS
 // =====================
