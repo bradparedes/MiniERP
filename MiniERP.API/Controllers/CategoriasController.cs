@@ -18,7 +18,7 @@ namespace MiniERP.API.Controllers
             _categoriaService = categoriaService;
         }
 
-        // 🔓 User, Admin
+        // OBTENER TODAS LAS CATEGORÍAS (User, Admin)
         [HttpGet]
         [Authorize(Roles = $"{Roles.Admin},{Roles.User}")]
         public async Task<IActionResult> GetAll()
@@ -42,7 +42,11 @@ namespace MiniERP.API.Controllers
             if (categoria == null)
                 return NotFound(new { message = "Categoría no encontrada" });
 
-            return Ok(categoria);
+            return Ok(new
+            {
+                message = "Categoría encontrada",
+                data = categoria
+            });
         }
 
         // 🔐 Admin
@@ -50,12 +54,26 @@ namespace MiniERP.API.Controllers
         [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Create([FromBody] CreateCategoriaRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Nombre))
+                return BadRequest(new { message = "El nombre es obligatorio" });
 
-            var categoria = await _categoriaService.CreateAsync(request);
+            try
+            {
+                var categoria = await _categoriaService.CreateAsync(request);
 
-            return CreatedAtAction(nameof(GetById), new { id = categoria.Id }, categoria);
+                return CreatedAtAction(
+                    nameof(GetById),
+                    new { id = categoria.Id },
+                    new
+                    {
+                        message = "Categoría creada correctamente",
+                        data = categoria
+                    });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         // 🔐 Admin
@@ -63,13 +81,13 @@ namespace MiniERP.API.Controllers
         [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoriaRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Nombre))
+                return BadRequest(new { message = "El nombre es obligatorio" });
 
             var updated = await _categoriaService.UpdateAsync(id, request);
 
             if (!updated)
-                return NotFound(new { message = "Categoría no encontrada" });
+                return NotFound(new { message = "Categoría no encontrada o inactiva" });
 
             return Ok(new { message = "Categoría actualizada correctamente" });
         }
@@ -79,12 +97,19 @@ namespace MiniERP.API.Controllers
         [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Delete(int id)
         {
-            var deleted = await _categoriaService.DeleteAsync(id);
+            try
+            {
+                var deleted = await _categoriaService.DeleteAsync(id);
 
-            if (!deleted)
-                return NotFound(new { message = "Categoría no encontrada" });
+                if (!deleted)
+                    return NotFound(new { message = "Categoría no encontrada o ya eliminada" });
 
-            return Ok(new { message = "Categoría eliminada correctamente" });
+                return Ok(new { message = "Categoría eliminada correctamente" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

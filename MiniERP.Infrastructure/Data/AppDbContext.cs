@@ -40,6 +40,12 @@ namespace MiniERP.Infrastructure.Data
                     .HasDefaultValueSql("NOW()");
             });
             
+            modelBuilder.Entity<Producto>()
+                .HasOne(p => p.Categoria)
+                .WithMany(c => c.Productos)
+                .HasForeignKey(p => p.CategoriaId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<SecurityLog>(entity =>
             {
                 entity.HasKey(e => e.Id);

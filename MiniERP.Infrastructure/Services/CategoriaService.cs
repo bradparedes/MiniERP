@@ -53,9 +53,17 @@ namespace MiniERP.Infrastructure.Services
 
         public async Task<CategoriaResponse> CreateAsync(CreateCategoriaRequest request)
         {
+            var nombreNormalizado = request.Nombre.Trim();
+
+            var exists = await _db.Categorias
+                .AnyAsync(c => c.Nombre == nombreNormalizado && c.IsActive);
+
+            if (exists)
+                throw new InvalidOperationException("Ya existe una categoría con ese nombre.");
+
             var categoria = new Categoria
             {
-                Nombre = request.Nombre,
+                Nombre = nombreNormalizado,
                 Descripcion = request.Descripcion,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
@@ -78,10 +86,10 @@ namespace MiniERP.Infrastructure.Services
         {
             var categoria = await _db.Categorias.FindAsync(id);
 
-            if (categoria == null)
+            if (categoria == null || !categoria.IsActive)
                 return false;
 
-            categoria.Nombre = request.Nombre;
+            categoria.Nombre = request.Nombre.Trim();
             categoria.Descripcion = request.Descripcion;
             categoria.IsActive = request.IsActive;
 
@@ -92,10 +100,12 @@ namespace MiniERP.Infrastructure.Services
         public async Task<bool> DeleteAsync(int id)
         {
             var categoria = await _db.Categorias.FindAsync(id);
+            var tieneProductos = await _db.Productos.AnyAsync(p => p.CategoriaId == id);
 
-            if (categoria == null)
+            if (categoria == null || !categoria.IsActive)
                 return false;
-
+            if (tieneProductos)
+                throw new InvalidOperationException("No se puede eliminar la categoría porque tiene productos asociados.");
             // 🔐 Soft delete
             categoria.IsActive = false;
             await _db.SaveChangesAsync();

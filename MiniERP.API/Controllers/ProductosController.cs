@@ -36,27 +36,49 @@ namespace MiniERP.API.Controllers
         [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateProductoRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Nombre))
+                return BadRequest(new { message = "Datos inválidos" });
 
-            var updated = await _productoService.UpdateAsync(id, request);
+            try
+            {
+                var updated = await _productoService.UpdateAsync(id, request);
 
-            if (!updated)
-                return NotFound(new { message = "Producto no encontrado" });
+                if (updated == null)
+                    return NotFound(new { message = "Producto no encontrado o inactivo" });
 
-            return Ok(new { message = "Producto actualizado correctamente" });
+                return Ok(new
+                {
+                    message = "Producto actualizado correctamente",
+                    data = updated
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost]
         [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Create([FromBody] CreateProductoRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Nombre))
+                return BadRequest(new { message = "Datos inválidos" });
 
-            var producto = await _productoService.CreateAsync(request);
+            try
+            {
+                var producto = await _productoService.CreateAsync(request);
 
-            return CreatedAtAction(nameof(GetAll), new { id = producto.Id }, producto);
+                return CreatedAtAction(nameof(GetAll), new { id = producto.Id }, new
+                {
+                    message = "Producto creado correctamente",
+                    data = producto
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpDelete("{id:int}")]
@@ -66,7 +88,7 @@ namespace MiniERP.API.Controllers
             var deleted = await _productoService.DeleteAsync(id);
 
             if (!deleted)
-                return NotFound(new { message = "Producto no encontrado" });
+                return NotFound(new { message = "Producto no encontrado o ya eliminado" });
 
             return Ok(new { message = "Producto eliminado correctamente" });
         }
