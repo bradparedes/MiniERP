@@ -36,61 +36,64 @@ namespace MiniERP.API.Controllers
         [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateProductoRequest request)
         {
-            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Nombre))
-                return BadRequest(new { message = "Datos inválidos" });
+            if (id <= 0)
+                return BadRequest(new { message = "El id debe ser mayor que cero." });
 
-            try
-            {
+            
                 var updated = await _productoService.UpdateAsync(id, request);
-
-                if (updated == null)
-                    return NotFound(new { message = "Producto no encontrado o inactivo" });
 
                 return Ok(new
                 {
                     message = "Producto actualizado correctamente",
                     data = updated
                 });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
         }
 
         [HttpPost]
         [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Create([FromBody] CreateProductoRequest request)
         {
-            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Nombre))
-                return BadRequest(new { message = "Datos inválidos" });
-
-            try
-            {
                 var producto = await _productoService.CreateAsync(request);
 
-                return CreatedAtAction(nameof(GetAll), new { id = producto.Id }, new
+                return CreatedAtAction(nameof(GetById), new { id = producto.Id }, new
                 {
                     message = "Producto creado correctamente",
                     data = producto
                 });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
         }
 
         [HttpDelete("{id:int}")]
         [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Delete(int id)
         {
+            if (id <= 0)
+                return BadRequest(new { message = "El id debe ser mayor que cero." });
+
             var deleted = await _productoService.DeleteAsync(id);
 
             if (!deleted)
                 return NotFound(new { message = "Producto no encontrado o ya eliminado" });
 
             return Ok(new { message = "Producto eliminado correctamente" });
+        }
+
+        [HttpGet("{id:int}")]
+        [Authorize(Roles = $"{Roles.Admin},{Roles.User}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            if (id <= 0)
+                return BadRequest(new { message = "El id debe ser mayor que cero." });
+            
+            var producto = await _productoService.GetByIdAsync(id);
+
+            if (producto == null)
+                return NotFound(new { message = "Producto no encontrado o inactivo" });
+
+            return Ok(new
+            {
+                message = "Producto encontrado",
+                data = producto
+            });
         }
     }
 }

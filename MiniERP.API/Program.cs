@@ -8,6 +8,9 @@ using MiniERP.Application.Interfaces;
 using MiniERP.Infrastructure.Services;
 using MiniERP.Infrastructure;
 using MiniERP.Infrastructure.Data;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using MiniERP.Application.Validators.Productos;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 using MiniERP.Core.Entities;
@@ -59,7 +62,11 @@ builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 // =====================
 // CONTROLLERS
 // =====================
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddFluentValidationAutoValidation()
+    .AddFluentValidationClientsideAdapters();
+
+builder.Services.AddValidatorsFromAssemblyContaining<MiniERP.Application.Validators.Productos.CreateProductoRequestValidator>();
 
 // =====================
 // AUTH JWT
