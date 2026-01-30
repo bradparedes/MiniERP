@@ -12,8 +12,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using MiniERP.Application.Validators.Productos;
 using System.Text;
-using Microsoft.AspNetCore.Authentication.OAuth.Claims;
-using MiniERP.Core.Entities;
+using MiniERP.API.Filters;
 using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -50,23 +49,30 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Interfaces del Core
 builder.Services.AddScoped<ITokenService, TokenService>();
 // Interfaces del Producto
-builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.AddScoped<IProductService, ProductoService>();
 // Registra TODO Infrastructure (ProductoService, DbContext, etc.)
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddScoped<ISecurityLogService, SecurityLogService>();
 
-builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 
 // =====================
 // CONTROLLERS
 // =====================
-builder.Services.AddControllers()
-    .AddFluentValidationAutoValidation()
-    .AddFluentValidationClientsideAdapters();
 
-builder.Services.AddValidatorsFromAssemblyContaining<MiniERP.Application.Validators.Productos.CreateProductoRequestValidator>();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ValidationFilter>();
+});
+
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddFluentValidationClientsideAdapters();
+
+// Registro de validadores
+builder.Services.AddValidatorsFromAssemblyContaining<CreateProductRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<GetProductByIdRequestValidator>();
 
 // =====================
 // AUTH JWT

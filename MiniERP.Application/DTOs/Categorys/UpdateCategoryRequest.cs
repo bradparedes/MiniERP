@@ -1,10 +1,10 @@
 namespace MiniERP.Application.DTOs.Categorias
 {
-    public class UpdateCategoriaRequest
+    public class UpdateCategoryRequest
     {
         public int Id { get; set; }
-        public string Nombre { get; set; } = null!;
-        public string? Descripcion { get; set; }
+        public string Name { get; set; } = null!;
+        public string? Description { get; set; }
         public bool IsActive { get; set; }
     }
 }

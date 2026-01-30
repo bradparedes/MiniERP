@@ -11,9 +11,9 @@ namespace MiniERP.API.Controllers
     [Authorize]
     public class CategoriasController : ControllerBase
     {
-        private readonly ICategoriaService _categoriaService;
+        private readonly ICategoryService _categoriaService;
 
-        public CategoriasController(ICategoriaService categoriaService)
+        public CategoriasController(ICategoryService categoriaService)
         {
             _categoriaService = categoriaService;
         }
@@ -52,9 +52,9 @@ namespace MiniERP.API.Controllers
         // 🔐 Admin
         [HttpPost]
         [Authorize(Roles = Roles.Admin)]
-        public async Task<IActionResult> Create([FromBody] CreateCategoriaRequest request)
+        public async Task<IActionResult> Create([FromBody] CreateCategoryRequest request)
         {
-            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Nombre))
+            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Name))
                 return BadRequest(new { message = "El nombre es obligatorio" });
 
             try
@@ -79,9 +79,9 @@ namespace MiniERP.API.Controllers
         // 🔐 Admin
         [HttpPut("{id:int}")]
         [Authorize(Roles = Roles.Admin)]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoriaRequest request)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryRequest request)
         {
-            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Nombre))
+            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Name))
                 return BadRequest(new { message = "El nombre es obligatorio" });
 
             var updated = await _categoriaService.UpdateAsync(id, request);

@@ -10,11 +10,11 @@ namespace MiniERP.Infrastructure.Data
         {
         }
 
-        public DbSet<Producto> Productos => Set<Producto>();
+        public DbSet<Product> Products => Set<Product>();
 
         public DbSet<SecurityLog> SecurityLogs => Set<SecurityLog>();
 
-        public DbSet<Categoria> Categorias => Set<Categoria>();
+        public DbSet<Category> Categorias => Set<Category>();
 
         public DbSet<User> Users => Set<User>();
 
@@ -40,10 +40,10 @@ namespace MiniERP.Infrastructure.Data
                     .HasDefaultValueSql("NOW()");
             });
             
-            modelBuilder.Entity<Producto>()
-                .HasOne(p => p.Categoria)
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Category)
                 .WithMany(c => c.Productos)
-                .HasForeignKey(p => p.CategoriaId)
+                .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<SecurityLog>(entity =>
@@ -54,19 +54,19 @@ namespace MiniERP.Infrastructure.Data
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
             });
 
-            modelBuilder.Entity<Categoria>(entity =>
+            modelBuilder.Entity<Category>(entity =>
             {
                 entity.ToTable("Categorias");
 
                 entity.HasKey(c => c.Id);
 
-                entity.Property(c => c.Nombre)
+                entity.Property(c => c.Name)
                     .IsRequired()
                     .HasMaxLength(100);
 
                 entity.HasMany(c => c.Productos)
-                    .WithOne(p => p.Categoria)
-                    .HasForeignKey(p => p.CategoriaId)
+                    .WithOne(p => p.Category)
+                    .HasForeignKey(p => p.CategoryId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }

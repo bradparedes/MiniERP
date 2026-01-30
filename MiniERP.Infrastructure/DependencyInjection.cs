@@ -16,7 +16,7 @@ namespace MiniERP.Infrastructure
             IConfiguration configuration)
         {
             // Configurar DbContext
-            services.AddScoped<IProductoService, ProductoService>();
+            services.AddScoped<IProductService, ProductoService>();
             services.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 

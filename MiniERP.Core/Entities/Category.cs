@@ -1,18 +1,18 @@
 namespace MiniERP.Core.Entities
 {
-    public class Categoria
+    public class Category
     {
         public int Id { get; set; }
 
-        public string Nombre { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
 
-        public string? Descripcion { get; set; }
+        public string? Description { get; set; }
 
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navegación
-        public ICollection<Producto> Productos { get; set; } = new List<Producto>();
+        public ICollection<Product> Productos { get; set; } = new List<Product>();
     }
 }

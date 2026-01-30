@@ -6,7 +6,7 @@ using MiniERP.Infrastructure.Data;
 
 namespace MiniERP.Infrastructure.Services
 {
-    public class ProductoService : IProductoService
+    public class ProductoService : IProductService
     {
         private readonly AppDbContext _db;
 
@@ -16,21 +16,21 @@ namespace MiniERP.Infrastructure.Services
         }
 
         // 📦 Obtener todos los productos activos
-        public async Task<List<ProductoResponse>> GetAllAsync()
+        public async Task<List<ProductResponse>> GetAllAsync()
         {
-            return await _db.Productos
+            return await _db.Products
                 .AsNoTracking()
                 .Where(p => p.IsActive)
-                .Include(p => p.Categoria)
-                .Select(p => new ProductoResponse
+                .Include(p => p.Category)
+                .Select(p => new ProductResponse
                 {
                     Id = p.Id,
-                    Nombre = p.Nombre,
+                    Name = p.Name,
                     Description = p.Description,
-                    Precio = p.Precio,
+                    Price = p.Price,
                     Stock = p.Stock,
-                    CategoriaId = p.CategoriaId,
-                    CategoriaNombre = p.Categoria!.Nombre,
+                    CategoryId = p.CategoryId,
+                    CategoryName = p.Category!.Name,
                     IsActive = p.IsActive,
                     CreatedAt = p.CreatedAt
                 })
@@ -38,98 +38,98 @@ namespace MiniERP.Infrastructure.Services
         }
 
         // 🔍 Obtener producto por Id
-        public async Task<ProductoResponse?> GetByIdAsync(int id)
+        public async Task<ProductResponse?> GetByIdAsync(int id)
         {
-            var producto = await _db.Productos
-                .Include(p => p.Categoria)
+            var producto = await _db.Products
+                .Include(p => p.Category)
                 .FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
 
             if (producto == null)
                 return null;
 
-            return new ProductoResponse
+            return new ProductResponse
             {
                 Id = producto.Id,
-                Nombre = producto.Nombre,
+                Name = producto.Name,
                 Description = producto.Description,
-                Precio = producto.Precio,
+                Price = producto.Price,
                 Stock = producto.Stock,
-                CategoriaId = producto.CategoriaId,
-                CategoriaNombre = producto.Categoria!.Nombre,
+                CategoryId = producto.CategoryId,
+                CategoryName = producto.Category!.Name,
                 IsActive = producto.IsActive,
                 CreatedAt = producto.CreatedAt
             };
         }
 
         // 🆕 Crear producto
-        public async Task<ProductoResponse> CreateAsync(CreateProductoRequest request)
+        public async Task<ProductResponse> CreateAsync(CreateProductoRequest request)
         {
-            var categoria = await _db.Categorias
-                .FirstOrDefaultAsync(c => c.Id == request.CategoriaId && c.IsActive);
+            var category = await _db.Categorias
+                .FirstOrDefaultAsync(c => c.Id == request.CategoryId && c.IsActive);
 
-            if (categoria is null)
+            if (category is null)
                 throw new InvalidOperationException("La categoría no existe o está inactiva.");
 
-            var producto = new Producto
+            var producto = new Product
             {
-                Nombre = request.Nombre.Trim(),
+                Name = request.Name.Trim(),
                 Description = request.Description,
-                Precio = request.Precio,
+                Price = request.Price,
                 Stock = request.Stock,
-                CategoriaId = request.CategoriaId,
+                CategoryId = request.CategoryId,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
 
-            _db.Productos.Add(producto);
+            _db.Products.Add(producto);
             await _db.SaveChangesAsync();
 
-            return new ProductoResponse
+            return new ProductResponse
             {
                 Id = producto.Id,
-                Nombre = producto.Nombre,
+                Name = producto.Name,
                 Description = producto.Description,
-                Precio = producto.Precio,
+                Price = producto.Price,
                 Stock = producto.Stock,
-                CategoriaId = producto.CategoriaId,
-                CategoriaNombre = categoria.Nombre,
+                CategoryId = producto.CategoryId,
+                CategoryName = category.Name,
                 IsActive = producto.IsActive,
                 CreatedAt = producto.CreatedAt
             };
         }
 
         // ✏️ Actualizar producto
-        public async Task<ProductoResponse> UpdateAsync(int id, UpdateProductoRequest request)
+        public async Task<ProductResponse> UpdateAsync(int id, UpdateProductRequest request)
         {
-            var producto = await _db.Productos.FindAsync(id);
+            var producto = await _db.Products.FindAsync(id);
 
             if (producto == null || !producto.IsActive)
                 throw new InvalidOperationException("El producto no existe o está inactivo.");
 
-            var categoria = await _db.Categorias
-                .FirstOrDefaultAsync(c => c.Id == request.CategoriaId && c.IsActive);
+            var category = await _db.Categorias
+                .FirstOrDefaultAsync(c => c.Id == request.CategoryId && c.IsActive);
 
-            if (categoria == null)
+            if (category == null)
                 throw new InvalidOperationException("La categoría no existe o está inactiva.");
 
-            producto.Nombre = request.Nombre.Trim();
+            producto.Name = request.Name.Trim();
             producto.Description = request.Description;
-            producto.Precio = request.Precio;
+            producto.Price = request.Price;
             producto.Stock = request.Stock;
-            producto.CategoriaId = request.CategoriaId;
+            producto.CategoryId = request.CategoryId;
             producto.IsActive = request.IsActive;
 
             await _db.SaveChangesAsync();
 
-            return new ProductoResponse
+            return new ProductResponse
             {
                 Id = producto.Id,
-                Nombre = producto.Nombre,
+                Name = producto.Name,
                 Description = producto.Description,
-                Precio = producto.Precio,
+                Price = producto.Price,
                 Stock = producto.Stock,
-                CategoriaId = producto.CategoriaId,
-                CategoriaNombre = categoria.Nombre,
+                CategoryId = producto.CategoryId,
+                CategoryName = category.Name,
                 IsActive = producto.IsActive,
                 CreatedAt = producto.CreatedAt
             };
@@ -138,7 +138,7 @@ namespace MiniERP.Infrastructure.Services
         // 🗑️ Eliminar producto (soft delete)
         public async Task<bool> DeleteAsync(int id)
         {
-            var producto = await _db.Productos.FindAsync(id);
+            var producto = await _db.Products.FindAsync(id);
             if (producto == null || !producto.IsActive)
                 return false;
 
