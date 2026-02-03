@@ -10,7 +10,7 @@ using MiniERP.Infrastructure;
 using MiniERP.Infrastructure.Data;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using MiniERP.Application.Validators.Productos;
+using MiniERP.Application.Validators.Products;
 using System.Text;
 using MiniERP.API.Filters;
 using System.Security.Claims;
@@ -49,7 +49,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Interfaces del Core
 builder.Services.AddScoped<ITokenService, TokenService>();
 // Interfaces del Producto
-builder.Services.AddScoped<IProductService, ProductoService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 // Registra TODO Infrastructure (ProductoService, DbContext, etc.)
 builder.Services.AddInfrastructure(builder.Configuration);
 

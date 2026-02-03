@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MiniERP.Application.Interfaces;
-using MiniERP.Application.DTOs.Productos;
+using MiniERP.Application.DTOs.Products;
+using MiniERP.Application.Requests.Products;
 using MiniERP.Core.Constants;
 
 namespace MiniERP.API.Controllers
@@ -22,12 +23,12 @@ namespace MiniERP.API.Controllers
         [Authorize(Roles = $"{Roles.Admin},{Roles.User}")]
         public async Task<IActionResult> GetAll()
         {
-            var productos = await _productService.GetAllAsync();
+            var products = await _productService.GetAllAsync();
 
             return Ok(new
             {
                 message = "Lista de productos",
-                data = productos
+                data = products
             });
         }
 
@@ -50,14 +51,14 @@ namespace MiniERP.API.Controllers
 
         [HttpPost]
         [Authorize(Roles = Roles.Admin)]
-        public async Task<IActionResult> Create([FromBody] CreateProductoRequest request)
+        public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
         {
-                var producto = await _productService.CreateAsync(request);
+                var product = await _productService.CreateAsync(request);
 
-                return CreatedAtAction(nameof(GetById), new { id = producto.Id }, new
+                return CreatedAtAction(nameof(GetById), new { id = product.Id }, new
                 {
                     message = "Producto creado correctamente",
-                    data = producto
+                    data = product
                 });
         }
 
@@ -85,15 +86,15 @@ namespace MiniERP.API.Controllers
             if (request.Id <= 0)
                 return BadRequest(new { message = "El id debe ser mayor que cero." });
             
-            var producto = await _productService.GetByIdAsync(request.Id);
+            var product = await _productService.GetByIdAsync(request.Id);
 
-            if (producto == null)
+            if (product == null)
                 return NotFound(new { message = "Producto no encontrado o inactivo" });
 
             return Ok(new
             {
                 message = "Producto encontrado",
-                data = producto
+                data = product
             });
         }
     }

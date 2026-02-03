@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MiniERP.Application.DTOs.Categorias;
+using MiniERP.Application.DTOs.Categories;
+using MiniERP.Application.Requests.Categories;
 using MiniERP.Application.Interfaces;
 using MiniERP.Core.Constants;
 
@@ -9,13 +10,13 @@ namespace MiniERP.API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class CategoriasController : ControllerBase
+    public class CategorysController : ControllerBase
     {
-        private readonly ICategoryService _categoriaService;
+        private readonly ICategoryService _categoryService;
 
-        public CategoriasController(ICategoryService categoriaService)
+        public CategorysController(ICategoryService categoryService)
         {
-            _categoriaService = categoriaService;
+            _categoryService = categoryService;
         }
 
         // OBTENER TODAS LAS CATEGORÍAS (User, Admin)
@@ -23,12 +24,12 @@ namespace MiniERP.API.Controllers
         [Authorize(Roles = $"{Roles.Admin},{Roles.User}")]
         public async Task<IActionResult> GetAll()
         {
-            var categorias = await _categoriaService.GetAllAsync();
+            var categories = await _categoryService.GetAllAsync();
 
             return Ok(new
             {
                 message = "Lista de categorías",
-                data = categorias
+                data = categories
             });
         }
 
@@ -37,15 +38,15 @@ namespace MiniERP.API.Controllers
         [Authorize(Roles = $"{Roles.Admin},{Roles.User}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var categoria = await _categoriaService.GetByIdAsync(id);
+            var category = await _categoryService.GetByIdAsync(id);
 
-            if (categoria == null)
+            if (category == null)
                 return NotFound(new { message = "Categoría no encontrada" });
 
             return Ok(new
             {
                 message = "Categoría encontrada",
-                data = categoria
+                data = category
             });
         }
 
@@ -59,15 +60,15 @@ namespace MiniERP.API.Controllers
 
             try
             {
-                var categoria = await _categoriaService.CreateAsync(request);
+                var category = await _categoryService.CreateAsync(request);
 
                 return CreatedAtAction(
                     nameof(GetById),
-                    new { id = categoria.Id },
+                    new { id = category.Id },
                     new
                     {
                         message = "Categoría creada correctamente",
-                        data = categoria
+                        data = category
                     });
             }
             catch (InvalidOperationException ex)
@@ -84,7 +85,7 @@ namespace MiniERP.API.Controllers
             if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Name))
                 return BadRequest(new { message = "El nombre es obligatorio" });
 
-            var updated = await _categoriaService.UpdateAsync(id, request);
+            var updated = await _categoryService.UpdateAsync(id, request);
 
             if (!updated)
                 return NotFound(new { message = "Categoría no encontrada o inactiva" });
@@ -99,7 +100,7 @@ namespace MiniERP.API.Controllers
         {
             try
             {
-                var deleted = await _categoriaService.DeleteAsync(id);
+                var deleted = await _categoryService.DeleteAsync(id);
 
                 if (!deleted)
                     return NotFound(new { message = "Categoría no encontrada o ya eliminada" });
