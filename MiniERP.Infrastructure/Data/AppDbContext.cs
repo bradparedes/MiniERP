@@ -14,7 +14,7 @@ namespace MiniERP.Infrastructure.Data
 
         public DbSet<SecurityLog> SecurityLogs => Set<SecurityLog>();
 
-        public DbSet<Category> Categorias => Set<Category>();
+        public DbSet<Category> Categories => Set<Category>();
 
         public DbSet<User> Users => Set<User>();
 
@@ -42,7 +42,7 @@ namespace MiniERP.Infrastructure.Data
             
             modelBuilder.Entity<Product>()
                 .HasOne(p => p.Category)
-                .WithMany(c => c.Productos)
+                .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
@@ -56,7 +56,7 @@ namespace MiniERP.Infrastructure.Data
 
             modelBuilder.Entity<Category>(entity =>
             {
-                entity.ToTable("Categorias");
+                entity.ToTable("Categories");
 
                 entity.HasKey(c => c.Id);
 
@@ -64,7 +64,7 @@ namespace MiniERP.Infrastructure.Data
                     .IsRequired()
                     .HasMaxLength(100);
 
-                entity.HasMany(c => c.Productos)
+                entity.HasMany(c => c.Products)
                     .WithOne(p => p.Category)
                     .HasForeignKey(p => p.CategoryId)
                     .OnDelete(DeleteBehavior.Restrict);

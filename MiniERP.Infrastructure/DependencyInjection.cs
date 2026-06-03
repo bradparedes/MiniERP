@@ -6,6 +6,8 @@ using MiniERP.Core.Settings;
 using MiniERP.Application.Interfaces;
 using MiniERP.Infrastructure.Data;
 using MiniERP.Infrastructure.Services;
+using MiniERP.Core.Interfaces;
+using MiniERP.Infrastructure.Repositories;
 
 namespace MiniERP.Infrastructure
 {
@@ -16,7 +18,8 @@ namespace MiniERP.Infrastructure
             IConfiguration configuration)
         {
             // Configurar DbContext
-            services.AddScoped<IProductService, ProductoService>();
+            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddDbContext<AppDbContext>(options =>
                 options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 

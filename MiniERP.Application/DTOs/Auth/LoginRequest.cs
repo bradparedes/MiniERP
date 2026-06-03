@@ -1,4 +1,4 @@
-namespace MiniERP.Core.Entities
+namespace MiniERP.Application.DTOs.Auth
 {
     public class LoginRequest
     {

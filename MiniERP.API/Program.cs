@@ -14,6 +14,7 @@ using MiniERP.Application.Validators.Products;
 using System.Text;
 using MiniERP.API.Filters;
 using System.Security.Claims;
+using MiniERP.Application.UseCases.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,14 +49,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Interfaces del Core
 builder.Services.AddScoped<ITokenService, TokenService>();
-// Interfaces del Producto
-builder.Services.AddScoped<IProductService, ProductService>();
 // Registra TODO Infrastructure (ProductoService, DbContext, etc.)
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddScoped<ISecurityLogService, SecurityLogService>();
+// Registrar UseCases de Aplication
+builder.Services.AddScoped<LoginUseCase>();
 
-builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 
 // =====================
@@ -93,7 +93,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             RoleClaimType = ClaimTypes.Role
         };
     });
-
 // =====================
 // SWAGGER + JWT
 // =====================

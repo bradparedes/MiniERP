@@ -1,6 +1,6 @@
-namespace MiniERP.Application.DTOs.Productos
+namespace MiniERP.Application.Requests.Products
 {
-    public class CreateProductoRequest
+    public class CreateProductRequest
     {
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;

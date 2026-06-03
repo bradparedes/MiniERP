@@ -1,4 +1,4 @@
-namespace MiniERP.Application.DTOs.Productos
+namespace MiniERP.Application.Requests.Products
 {
     public class UpdateProductRequest
     {

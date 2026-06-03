@@ -1,4 +1,5 @@
-using MiniERP.Application.DTOs.Productos;
+using MiniERP.Application.DTOs.Products;
+using MiniERP.Application.Requests.Products;
 
 
 namespace MiniERP.Application.Interfaces
@@ -7,7 +8,7 @@ namespace MiniERP.Application.Interfaces
     {
         Task<List<ProductResponse>> GetAllAsync();
         Task<ProductResponse?> GetByIdAsync(int id);
-        Task<ProductResponse> CreateAsync(CreateProductoRequest request);
+        Task<ProductResponse> CreateAsync(CreateProductRequest request);
 
         Task<ProductResponse> UpdateAsync(int id, UpdateProductRequest request);
         Task<bool> DeleteAsync(int id);

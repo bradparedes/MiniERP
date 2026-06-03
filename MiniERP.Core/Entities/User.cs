@@ -10,7 +10,7 @@ namespace MiniERP.Core.Entities
         
         public string PasswordHash { get; set; } = null!;
 
-        public string Role { get; set; } = Roles.User; // Admin o User
+        public string Role { get; set; } = Roles.User + "," + Roles.Admin; // Admin o User
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

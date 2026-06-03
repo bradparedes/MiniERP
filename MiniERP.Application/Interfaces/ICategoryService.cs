@@ -1,4 +1,5 @@
-using MiniERP.Application.DTOs.Categorias;
+using MiniERP.Application.Requests.Categories;
+using MiniERP.Application.DTOs.Categories;
 
 namespace MiniERP.Application.Interfaces
 {

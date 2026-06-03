@@ -1,4 +1,4 @@
-namespace MiniERP.Application.DTOs.Categorias
+namespace MiniERP.Application.DTOs.Categories
 {
     public class CategoryResponse
     {

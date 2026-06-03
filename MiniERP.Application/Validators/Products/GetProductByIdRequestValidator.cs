@@ -1,7 +1,8 @@
 using FluentValidation;
-using MiniERP.Application.DTOs.Productos;
+using MiniERP.Application.DTOs.Products;
+using MiniERP.Application.Requests.Products;
 
-namespace MiniERP.Application.Validators.Productos
+namespace MiniERP.Application.Validators.Products
 {
     public class GetProductByIdRequestValidator : AbstractValidator<GetProductByIdRequest>
     {
@@ -9,7 +10,7 @@ namespace MiniERP.Application.Validators.Productos
         {
             RuleFor(x => x.Id)
                 .GreaterThan(0)
-                .WithMessage("El id debe ser mayor que 0.");
+                .WithMessage("El id del producto debe ser mayor a 0.");
         }
     }
 }

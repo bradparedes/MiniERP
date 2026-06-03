@@ -1,9 +1,10 @@
 using FluentValidation;
-using MiniERP.Application.DTOs.Productos;
+using MiniERP.Application.DTOs.Products;
+using MiniERP.Application.Requests.Products;
 
-namespace MiniERP.Application.Validators.Productos
+namespace MiniERP.Application.Validators.Products
 {
-    public class CreateProductRequestValidator : AbstractValidator<CreateProductoRequest>
+    public class CreateProductRequestValidator : AbstractValidator<CreateProductRequest>
     {
         public CreateProductRequestValidator()
         {

@@ -1,4 +1,4 @@
-namespace MiniERP.Application.DTOs.Productos
+namespace MiniERP.Application.DTOs.Products
 {
     public class GetProductByIdRequest
     {

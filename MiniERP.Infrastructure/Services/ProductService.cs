@@ -1,16 +1,18 @@
 using Microsoft.EntityFrameworkCore;
-using MiniERP.Application.DTOs.Productos;
+using MiniERP.Application.DTOs.Products;
+using MiniERP.Application.Requests.Products;
 using MiniERP.Application.Interfaces;
 using MiniERP.Core.Entities;
 using MiniERP.Infrastructure.Data;
+using MiniERP.Infrastructure.Services;
 
 namespace MiniERP.Infrastructure.Services
 {
-    public class ProductoService : IProductService
+    public class ProductService : IProductService
     {
         private readonly AppDbContext _db;
 
-        public ProductoService(AppDbContext db)
+        public ProductService(AppDbContext db)
         {
             _db = db;
         }
@@ -40,37 +42,37 @@ namespace MiniERP.Infrastructure.Services
         // 🔍 Obtener producto por Id
         public async Task<ProductResponse?> GetByIdAsync(int id)
         {
-            var producto = await _db.Products
+            var product = await _db.Products
                 .Include(p => p.Category)
                 .FirstOrDefaultAsync(p => p.Id == id && p.IsActive);
 
-            if (producto == null)
+            if (product == null)
                 return null;
 
             return new ProductResponse
             {
-                Id = producto.Id,
-                Name = producto.Name,
-                Description = producto.Description,
-                Price = producto.Price,
-                Stock = producto.Stock,
-                CategoryId = producto.CategoryId,
-                CategoryName = producto.Category!.Name,
-                IsActive = producto.IsActive,
-                CreatedAt = producto.CreatedAt
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                Stock = product.Stock,
+                CategoryId = product.CategoryId,
+                CategoryName = product.Category!.Name,
+                IsActive = product.IsActive,
+                CreatedAt = product.CreatedAt
             };
         }
 
         // 🆕 Crear producto
-        public async Task<ProductResponse> CreateAsync(CreateProductoRequest request)
+        public async Task<ProductResponse> CreateAsync(CreateProductRequest request)
         {
-            var category = await _db.Categorias
+            var category = await _db.Categories
                 .FirstOrDefaultAsync(c => c.Id == request.CategoryId && c.IsActive);
 
             if (category is null)
                 throw new InvalidOperationException("La categoría no existe o está inactiva.");
 
-            var producto = new Product
+            var product = new Product
             {
                 Name = request.Name.Trim(),
                 Description = request.Description,
@@ -81,68 +83,68 @@ namespace MiniERP.Infrastructure.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            _db.Products.Add(producto);
+            _db.Products.Add(product);
             await _db.SaveChangesAsync();
 
             return new ProductResponse
             {
-                Id = producto.Id,
-                Name = producto.Name,
-                Description = producto.Description,
-                Price = producto.Price,
-                Stock = producto.Stock,
-                CategoryId = producto.CategoryId,
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                Stock = product.Stock,
+                CategoryId = product.CategoryId,
                 CategoryName = category.Name,
-                IsActive = producto.IsActive,
-                CreatedAt = producto.CreatedAt
+                IsActive = product.IsActive,
+                CreatedAt = product.CreatedAt
             };
         }
 
         // ✏️ Actualizar producto
         public async Task<ProductResponse> UpdateAsync(int id, UpdateProductRequest request)
         {
-            var producto = await _db.Products.FindAsync(id);
+            var product = await _db.Products.FindAsync(id);
 
-            if (producto == null || !producto.IsActive)
+            if (product == null || !product.IsActive)
                 throw new InvalidOperationException("El producto no existe o está inactivo.");
 
-            var category = await _db.Categorias
+            var category = await _db.Categories
                 .FirstOrDefaultAsync(c => c.Id == request.CategoryId && c.IsActive);
 
             if (category == null)
                 throw new InvalidOperationException("La categoría no existe o está inactiva.");
 
-            producto.Name = request.Name.Trim();
-            producto.Description = request.Description;
-            producto.Price = request.Price;
-            producto.Stock = request.Stock;
-            producto.CategoryId = request.CategoryId;
-            producto.IsActive = request.IsActive;
+            product.Name = request.Name.Trim();
+            product.Description = request.Description;
+            product.Price = request.Price;
+            product.Stock = request.Stock;
+            product.CategoryId = request.CategoryId;
+            product.IsActive = request.IsActive;
 
             await _db.SaveChangesAsync();
 
             return new ProductResponse
             {
-                Id = producto.Id,
-                Name = producto.Name,
-                Description = producto.Description,
-                Price = producto.Price,
-                Stock = producto.Stock,
-                CategoryId = producto.CategoryId,
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                Stock = product.Stock,
+                CategoryId = product.CategoryId,
                 CategoryName = category.Name,
-                IsActive = producto.IsActive,
-                CreatedAt = producto.CreatedAt
+                IsActive = product.IsActive,
+                CreatedAt = product.CreatedAt
             };
         }
 
         // 🗑️ Eliminar producto (soft delete)
         public async Task<bool> DeleteAsync(int id)
         {
-            var producto = await _db.Products.FindAsync(id);
-            if (producto == null || !producto.IsActive)
+            var product = await _db.Products.FindAsync(id);
+            if (product == null || !product.IsActive)
                 return false;
 
-            producto.IsActive = false;
+            product.IsActive = false;
             await _db.SaveChangesAsync();
             return true;
         }
