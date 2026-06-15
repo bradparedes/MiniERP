@@ -15,6 +15,7 @@ using System.Text;
 using MiniERP.API.Filters;
 using System.Security.Claims;
 using MiniERP.Application.UseCases.Auth;
+using MiniERP.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,8 +34,8 @@ var jwtSettingsSection = builder.Configuration.GetSection("JwtSettings");
 var jwtSettings = jwtSettingsSection.Get<JwtSettings>()
     ?? throw new Exception("No se pudo cargar JwtSettings desde appsettings.json.");
 
-builder.Services.Configure<JwtSettings>(jwtSettingsSection);
-builder.Services.AddSingleton(jwtSettings);
+builder.Services.Configure<JwtSettings>(
+    builder.Configuration.GetSection("JwtSettings"));
 
 // =====================
 // DATABASE
@@ -51,10 +52,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<ITokenService, TokenService>();
 // Registra TODO Infrastructure (ProductoService, DbContext, etc.)
 builder.Services.AddInfrastructure(builder.Configuration);
-
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISecurityLogService, SecurityLogService>();
 // Registrar UseCases de Aplication
 builder.Services.AddScoped<LoginUseCase>();
+builder.Services.AddScoped<RegisterUseCase>();
+builder.Services.AddScoped<ChangeUserRoleUseCase>();
 
 
 
@@ -142,6 +145,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 // Ruta test
 app.MapGet("/", () => "Hola MiniERP");

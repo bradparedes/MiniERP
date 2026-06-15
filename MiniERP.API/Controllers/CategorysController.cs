@@ -58,23 +58,12 @@ namespace MiniERP.API.Controllers
             if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Name))
                 return BadRequest(new { message = "El nombre es obligatorio" });
 
-            try
+            var category = await _categoryService.CreateAsync(request);
+            return CreatedAtAction(nameof(GetById), new { id = category.Id }, new
             {
-                var category = await _categoryService.CreateAsync(request);
-
-                return CreatedAtAction(
-                    nameof(GetById),
-                    new { id = category.Id },
-                    new
-                    {
-                        message = "Categoría creada correctamente",
-                        data = category
-                    });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+                message = "Categoría creada correctamente",
+                data = category
+            });
         }
 
         // 🔐 Admin
@@ -98,19 +87,12 @@ namespace MiniERP.API.Controllers
         [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Delete(int id)
         {
-            try
-            {
-                var deleted = await _categoryService.DeleteAsync(id);
+            var deleted = await _categoryService.DeleteAsync(id);
 
-                if (!deleted)
-                    return NotFound(new { message = "Categoría no encontrada o ya eliminada" });
+            if (!deleted)
+                return NotFound(new { message = "Categoría no encontrada o ya eliminada" });
 
-                return Ok(new { message = "Categoría eliminada correctamente" });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            return Ok(new { message = "Categoría eliminada correctamente" });
         }
     }
 }

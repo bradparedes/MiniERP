@@ -3,6 +3,7 @@ using MiniERP.Application.Requests;
 using MiniERP.Core.Entities;
 using MiniERP.Application.Interfaces;
 using MiniERP.Application.DTOs.Auth;
+using MiniERP.Application.Exceptions;
 using MiniERP.Core.Constants;
 
 namespace MiniERP.Application.UseCases.Auth;
@@ -10,27 +11,28 @@ public class LoginUseCase
 {
     private readonly IUserRepository _userRepository;
     private readonly ISecurityLogService _securityLogService;
+    private readonly ITokenService _tokenService;
 
     public LoginUseCase(
         IUserRepository userRepository,
-        ISecurityLogService securityLogService)
+        ISecurityLogService securityLogService,
+        ITokenService tokenService)
     {
         _userRepository = userRepository;
         _securityLogService = securityLogService;
+        _tokenService = tokenService;
     }
 
-    public class UnauthorizedException : Exception
-    {
-        public UnauthorizedException(string message) : base(message) { }
-    }
     public async Task<LoginResponse> Execute(LoginRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
-            throw new Exception("Email y contraseña son obligatorios");
+            throw new BadRequestException("Email y contraseña son obligatorios");
 
         var email = request.Email.Trim().ToLower();
 
         var user = await _userRepository.GetByEmail(email);
+
+        var token = _tokenService.GenerateToken(user!);
 
         if (user == null || !PasswordHasher.Verify(request.Password, user.PasswordHash))
             throw new UnauthorizedException("Credenciales incorrectas");
@@ -46,7 +48,8 @@ public class LoginUseCase
         {
             UserId = user.Id,
             Email = user.Email,
-            Role = user.Role 
+            Token = token,
+            Role = user.Role
         };
     }
 }

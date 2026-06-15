@@ -13,31 +13,35 @@ namespace MiniERP.API.Controllers
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
+        private readonly RegisterUseCase _registerUseCase;
         private readonly LoginUseCase _loginUseCase;
         private readonly IUserRepository _userRepository;
-        private readonly ITokenService _tokenService;
         private readonly ISecurityLogService _securityLogService;
+        private readonly ITokenService _tokenService;
+        private readonly ChangeUserRoleUseCase _changeUserRoleUseCase;
 
         public AuthController(
+            RegisterUseCase registerUseCase,
             LoginUseCase loginUseCase,
             IUserRepository userRepository,
+            ISecurityLogService securityLogService,
             ITokenService tokenService,
-            ISecurityLogService securityLogService)
+            ChangeUserRoleUseCase changeUserRoleUseCase)
         {
+            _registerUseCase = registerUseCase;
             _loginUseCase = loginUseCase;
             _userRepository = userRepository;
-            _tokenService = tokenService;
             _securityLogService = securityLogService;
+            _tokenService = tokenService;
+            _changeUserRoleUseCase = changeUserRoleUseCase;
         }
 
         // -------------------------
         // LOGIN
         // -------------------------
-        [HttpPost("login")]
+        [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            try
-            {
                 var result = await _loginUseCase.Execute(request);
 
                 return Ok(new
@@ -51,74 +55,37 @@ namespace MiniERP.API.Controllers
                         role = result.Role
                     }
                 });
-            }
-            catch (Exception ex)
-            {
-                return Unauthorized(new { message = ex.Message });
-            }
         }
 
         // -------------------------
         // REGISTER
         // -------------------------
-        [HttpPost("register")]
+        [HttpPost("Register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
-                return BadRequest(new { message = "Email y contraseña son obligatorios" });
+            await _registerUseCase.Execute(request);
 
-            var email = request.Email.Trim().ToLower();
-
-            var existingUser = await _userRepository.GetByEmail(email);
-
-            if (existingUser != null)
-                return BadRequest(new { message = "El correo ya está registrado" });
-
-            var user = new User
+            return Ok(new
             {
-                Email = email,
-                PasswordHash = PasswordHasher.Hash(request.Password),
-                Role = Roles.User
-            };
-
-            await _userRepository.Add(user);
-
-            await _securityLogService.LogAsync(
-                actorUserId: null,
-                targetUserId: user.Id,
-                action: "REGISTER_USER",
-                description: "Usuario registrado."
-            );
-
-            return Ok(new { message = "Usuario registrado correctamente" });
+                message = "Registro exitoso"
+            });
         }
 
         // -------------------------
         // CAMBIAR ROL (SOLO ADMIN)
         // -------------------------
         [Authorize(Roles = $"{Roles.Admin}")]
-        [HttpPut("change-role")]
+        [HttpPut("Change-Role")]
         public async Task<IActionResult> ChangeUserRole([FromBody] ChangeUserRoleRequest request)
         {
-            if (request.UserId <= 0 || string.IsNullOrWhiteSpace(request.NewRole))
-                return BadRequest(new { message = "Datos inválidos" });
+            var userIdClaim = User.FindFirst("id")?.Value;
 
-            var user = await _userRepository.GetById(request.UserId);
+            if (string.IsNullOrEmpty(userIdClaim))
+                return Unauthorized();
 
-            if (user == null)
-                return NotFound(new { message = "Usuario no encontrado" });
+            int adminId = int.Parse(userIdClaim);
 
-            user.Role = request.NewRole;
-            await _userRepository.Update(user);
-
-            var adminId = int.Parse(User.FindFirst("id")!.Value);
-
-            await _securityLogService.LogAsync(
-                actorUserId: adminId,
-                targetUserId: user.Id,
-                action: "CHANGE_ROLE",
-                description: $"Rol cambiado a {request.NewRole}."
-            );
+            await _changeUserRoleUseCase.Execute(request, adminId);
 
             return Ok(new { message = "Rol actualizado correctamente" });
         }
@@ -127,7 +94,7 @@ namespace MiniERP.API.Controllers
         // LISTAR USUARIOS
         // -------------------------
         [Authorize(Roles = $"{Roles.Admin}")]
-        [HttpGet("usuarios")]
+        [HttpGet("Users")]
         public async Task<IActionResult> GetUsers()
         {
             var users = await _userRepository.GetAll();
@@ -149,7 +116,7 @@ namespace MiniERP.API.Controllers
         // ELIMINAR USUARIO
         // -------------------------
         [Authorize(Roles = $"{Roles.Admin}")]
-        [HttpDelete("usuarios/{id:int}")]
+        [HttpDelete("Users/{id:int}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             var user = await _userRepository.GetById(id);
