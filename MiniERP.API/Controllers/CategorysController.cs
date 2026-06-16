@@ -28,7 +28,7 @@ namespace MiniERP.API.Controllers
 
             return Ok(new
             {
-                message = "Lista de categorías",
+                message = "categories list",
                 data = categories
             });
         }
@@ -51,7 +51,7 @@ namespace MiniERP.API.Controllers
         }
 
         // 🔐 Admin
-        [HttpPost("Create-Category")]
+        [HttpPost("Create")]
         [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Create([FromBody] CreateCategoryRequest request)
         {

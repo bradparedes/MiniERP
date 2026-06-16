@@ -42,19 +42,19 @@ namespace MiniERP.API.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-                var result = await _loginUseCase.Execute(request);
+            var result = await _loginUseCase.Execute(request);
 
-                return Ok(new
+            return Ok(new
+            {
+            message = "Successfully logged in",
+            token = result.Token,
+            user = new
                 {
-                    message = "Successfully logged in",
-                    token = result.Token,
-                    user = new
-                    {
-                        id = result.UserId,
-                        email = result.Email,
-                        role = result.Role
-                    }
-                });
+                    id = result.UserId,
+                    email = result.Email,
+                    role = result.Role
+                }
+            });
         }
 
         // -------------------------
