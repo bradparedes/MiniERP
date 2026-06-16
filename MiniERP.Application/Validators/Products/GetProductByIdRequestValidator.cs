@@ -10,7 +10,7 @@ namespace MiniERP.Application.Validators.Products
         {
             RuleFor(x => x.Id)
                 .GreaterThan(0)
-                .WithMessage("El id del producto debe ser mayor a 0.");
+                .WithMessage("The product id must be greater than 0.");
         }
     }
 }

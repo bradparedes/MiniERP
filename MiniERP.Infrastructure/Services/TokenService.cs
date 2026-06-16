@@ -44,19 +44,19 @@ namespace MiniERP.Infrastructure.Services
 
                 if (string.IsNullOrEmpty(_jwtSettings.SecretKey))
                 {
-                    throw new Exception("SecretKey está vacía");
+                    throw new Exception("SecretKey is empty");
                 }
 
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-                Console.WriteLine($"TOKEN GENERADO: {tokenString}");
+                Console.WriteLine($"GENERATED TOKEN: {tokenString}");
                 
                 return tokenString;
             }
 
             catch (Exception ex)
             {
-                Console.WriteLine($"ERROR TOKEN: {ex.Message}");
+                Console.WriteLine($"TOKEN ERROR: {ex.Message}");
                 throw;
             }
         }

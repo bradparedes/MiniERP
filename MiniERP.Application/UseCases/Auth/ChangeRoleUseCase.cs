@@ -21,15 +21,15 @@ public class ChangeUserRoleUseCase
     public async Task Execute(ChangeUserRoleRequest request, int adminId)
     {
         if (request.UserId <= 0 || string.IsNullOrWhiteSpace(request.NewRole))
-            throw new BadRequestException("Datos inválidos");
+            throw new BadRequestException("Invalid data");
 
         if (request.NewRole != Roles.Admin && request.NewRole != Roles.User)
-            throw new BadRequestException("Rol inválido");
+            throw new BadRequestException("Invalid role");
 
         var user = await _userRepository.GetById(request.UserId);
 
         if (user == null)
-            throw new BadRequestException("Usuario no encontrado");
+            throw new BadRequestException("User not found");
 
         user.Role = request.NewRole;
 
@@ -39,7 +39,7 @@ public class ChangeUserRoleUseCase
             actorUserId: adminId,
             targetUserId: user.Id,
             action: "CHANGE_ROLE",
-            description: $"Rol cambiado a {request.NewRole}"
+            description: $"Role changed to {request.NewRole}"
         );
     }
 }

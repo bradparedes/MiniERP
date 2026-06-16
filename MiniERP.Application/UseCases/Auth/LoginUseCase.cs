@@ -26,7 +26,7 @@ public class LoginUseCase
     public async Task<LoginResponse> Execute(LoginRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
-            throw new BadRequestException("Email y contraseña son obligatorios");
+            throw new BadRequestException("Email and password are required");
 
         var email = request.Email.Trim().ToLower();
 
@@ -35,13 +35,13 @@ public class LoginUseCase
         var token = _tokenService.GenerateToken(user!);
 
         if (user == null || !PasswordHasher.Verify(request.Password, user.PasswordHash))
-            throw new UnauthorizedException("Credenciales incorrectas");
+            throw new UnauthorizedException("Invalid credentials");
 
         await _securityLogService.LogAsync(
             actorUserId: user.Id,
             targetUserId: user.Id,
             action: "LOGIN",
-            description: "Inicio de sesión exitoso."
+            description: "Successful login."
         );
 
         return new LoginResponse

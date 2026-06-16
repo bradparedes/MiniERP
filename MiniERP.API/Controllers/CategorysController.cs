@@ -20,7 +20,7 @@ namespace MiniERP.API.Controllers
         }
 
         // OBTENER TODAS LAS CATEGORÍAS (User, Admin)
-        [HttpGet]
+        [HttpGet ("GetAll")]
         [Authorize(Roles = $"{Roles.Admin},{Roles.User}")]
         public async Task<IActionResult> GetAll()
         {
@@ -28,7 +28,7 @@ namespace MiniERP.API.Controllers
 
             return Ok(new
             {
-                message = "categories list",
+                message = "Categories list",
                 data = categories
             });
         }

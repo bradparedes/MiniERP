@@ -60,7 +60,7 @@ namespace MiniERP.Infrastructure.Services
                 .AnyAsync(c => c.Name == nombreNormalizado && c.IsActive);
 
             if (exists)
-                throw new InvalidOperationException("Ya existe una categoría con ese nombre.");
+                throw new InvalidOperationException("A category with that name already exists.");
 
             var category = new Category
             {
@@ -106,7 +106,7 @@ namespace MiniERP.Infrastructure.Services
             if (category == null || !category.IsActive)
                 return false;
             if (tieneProductos)
-                throw new InvalidOperationException("No se puede eliminar la categoría porque tiene productos asociados.");
+                throw new InvalidOperationException("The category cannot be deleted because it has associated products.");
             // 🔐 Soft delete
             category.IsActive = false;
             await _db.SaveChangesAsync();

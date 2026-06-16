@@ -9,23 +9,23 @@ namespace MiniERP.Application.Validators.Products
         public CreateProductRequestValidator()
         {
             RuleFor(x => x.Name)
-                .NotEmpty().WithMessage("El nombre es obligatorio.")
-                .MaximumLength(100).WithMessage("El nombre no puede exceder 100 caracteres.");
+                .NotEmpty().WithMessage("Name is required.")
+                .MaximumLength(100).WithMessage("Name cannot exceed 100 characters.");
 
             RuleFor(x => x.Description)
-                .MaximumLength(500).WithMessage("La descripción no puede exceder 500 caracteres.");
+                .MaximumLength(500).WithMessage("Description cannot exceed 500 characters.");
 
             RuleFor(x => x.Price)
-                .GreaterThan(0).WithMessage("El precio debe ser mayor que cero.");
+                .GreaterThan(0).WithMessage("Price must be greater than zero.");
 
             RuleFor(x => x.Stock)
-                .GreaterThanOrEqualTo(0).WithMessage("El stock no puede ser negativo.");
+                .GreaterThanOrEqualTo(0).WithMessage("Stock cannot be negative.");
 
             RuleFor(x => x.CategoryId)
-                .GreaterThan(0).WithMessage("Debe especificarse una categoría válida.");
-            
+                .GreaterThan(0).WithMessage("A valid category must be specified.");
+
             RuleFor(x => x.IsActive)
-                .NotNull().WithMessage("Debe especificarse si el producto está activo.");
+                .NotNull().WithMessage("The product's active status must be specified.");
         }
     }
 }

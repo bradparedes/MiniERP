@@ -70,7 +70,7 @@ namespace MiniERP.Infrastructure.Services
                 .FirstOrDefaultAsync(c => c.Id == request.CategoryId && c.IsActive);
 
             if (category is null)
-                throw new InvalidOperationException("La categoría no existe o está inactiva.");
+                throw new InvalidOperationException("The category does not exist or is inactive.");
 
             var product = new Product
             {
@@ -106,13 +106,13 @@ namespace MiniERP.Infrastructure.Services
             var product = await _db.Products.FindAsync(id);
 
             if (product == null || !product.IsActive)
-                throw new InvalidOperationException("El producto no existe o está inactivo.");
+                throw new InvalidOperationException("The product does not exist or is inactive.");
 
             var category = await _db.Categories
                 .FirstOrDefaultAsync(c => c.Id == request.CategoryId && c.IsActive);
 
             if (category == null)
-                throw new InvalidOperationException("La categoría no existe o está inactiva.");
+                throw new InvalidOperationException("The category does not exist or is inactive.");
 
             product.Name = request.Name.Trim();
             product.Description = request.Description;
