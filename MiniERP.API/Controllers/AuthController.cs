@@ -144,5 +144,20 @@ namespace MiniERP.API.Controllers
 
             return Ok(new { message = "User deleted successfully" });
         }
+        [Authorize]
+        [HttpGet("me")]
+        public IActionResult Me()
+        {
+            var userId = User.FindFirst("id")?.Value;
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+
+            return Ok(new
+            {
+                id = userId,
+                email,
+                role
+            });
+        }
     }
 }
