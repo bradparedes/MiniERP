@@ -19,7 +19,7 @@ namespace MiniERP.API.Controllers
             _productService = productService;
         }
 
-        [HttpGet]
+        [HttpGet("Get-All-Products")]
         [Authorize(Roles = $"{Roles.Admin},{Roles.User}")]
         public async Task<IActionResult> GetAll()
         {
@@ -27,7 +27,7 @@ namespace MiniERP.API.Controllers
 
             return Ok(new
             {
-                message = "Lista de productos",
+                message = "Products list",
                 data = products
             });
         }
@@ -37,19 +37,19 @@ namespace MiniERP.API.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] UpdateProductRequest request)
         {
             if (id <= 0)
-                return BadRequest(new { message = "El id debe ser mayor que cero." });
+                return BadRequest(new { message = "the id must be greater than zero." });
 
             
                 var updated = await _productService.UpdateAsync(id, request);
 
                 return Ok(new
                 {
-                    message = "Producto actualizado correctamente",
+                    message = "Successfully updated product",
                     data = updated
                 });
         }
 
-        [HttpPost]
+        [HttpPost("Create-Product")]
         [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
         {
@@ -57,7 +57,7 @@ namespace MiniERP.API.Controllers
 
                 return CreatedAtAction(nameof(GetById), new { id = product.Id }, new
                 {
-                    message = "Producto creado correctamente",
+                    message = "Successfully created product",
                     data = product
                 });
         }
@@ -67,14 +67,14 @@ namespace MiniERP.API.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             if (id <= 0)
-                return BadRequest(new { message = "El id debe ser mayor que cero." });
+                return BadRequest(new { message = "the id must be greater than zero." });
 
             var deleted = await _productService.DeleteAsync(id);
 
             if (!deleted)
-                return NotFound(new { message = "Producto no encontrado o ya eliminado" });
+                return NotFound(new { message = "Product not found or already deleted" });
 
-            return Ok(new { message = "Producto eliminado correctamente" });
+            return Ok(new { message = "Product deleted successfully" });
         }
 
         [HttpGet("{id:int}")]
@@ -84,16 +84,16 @@ namespace MiniERP.API.Controllers
             var request = new GetProductByIdRequest { Id = id };
 
             if (request.Id <= 0)
-                return BadRequest(new { message = "El id debe ser mayor que cero." });
+                return BadRequest(new { message = "the id must be greater than zero." });
             
             var product = await _productService.GetByIdAsync(request.Id);
 
             if (product == null)
-                return NotFound(new { message = "Producto no encontrado o inactivo" });
+                return NotFound(new { message = "Product not found or inactive" });
 
             return Ok(new
             {
-                message = "Producto encontrado",
+                message = "Product found",
                 data = product
             });
         }

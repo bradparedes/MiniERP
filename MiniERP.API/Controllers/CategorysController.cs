@@ -41,27 +41,27 @@ namespace MiniERP.API.Controllers
             var category = await _categoryService.GetByIdAsync(id);
 
             if (category == null)
-                return NotFound(new { message = "Categoría no encontrada" });
+                return NotFound(new { message = "Category not found" });
 
             return Ok(new
             {
-                message = "Categoría encontrada",
+                message = "Category found",
                 data = category
             });
         }
 
         // 🔐 Admin
-        [HttpPost]
+        [HttpPost("Create-Category")]
         [Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Create([FromBody] CreateCategoryRequest request)
         {
             if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Name))
-                return BadRequest(new { message = "El nombre es obligatorio" });
+                return BadRequest(new { message = "The name is required" });
 
             var category = await _categoryService.CreateAsync(request);
             return CreatedAtAction(nameof(GetById), new { id = category.Id }, new
             {
-                message = "Categoría creada correctamente",
+                message = "Category created successfully",
                 data = category
             });
         }
@@ -72,14 +72,14 @@ namespace MiniERP.API.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryRequest request)
         {
             if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Name))
-                return BadRequest(new { message = "El nombre es obligatorio" });
+                return BadRequest(new { message = "The name is required" });
 
             var updated = await _categoryService.UpdateAsync(id, request);
 
             if (!updated)
-                return NotFound(new { message = "Categoría no encontrada o inactiva" });
+                return NotFound(new { message = "Category not found or inactive" });
 
-            return Ok(new { message = "Categoría actualizada correctamente" });
+            return Ok(new { message = "Category updated successfully" });
         }
 
         // 🔐 Admin (soft delete)
@@ -90,9 +90,9 @@ namespace MiniERP.API.Controllers
             var deleted = await _categoryService.DeleteAsync(id);
 
             if (!deleted)
-                return NotFound(new { message = "Categoría no encontrada o ya eliminada" });
+                return NotFound(new { message = "Category not found or already deleted" });
 
-            return Ok(new { message = "Categoría eliminada correctamente" });
+            return Ok(new { message = "Category deleted successfully" });
         }
     }
 }

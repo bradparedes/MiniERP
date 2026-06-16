@@ -29,7 +29,7 @@ public class ExceptionMiddleware
         catch (Exception)
         {
             context.Response.StatusCode = 500;
-            await context.Response.WriteAsJsonAsync(new { message = "Error interno del servidor" });
+            await context.Response.WriteAsJsonAsync(new { message = "Internal server error" });
         }
     }
 }

@@ -46,7 +46,7 @@ namespace MiniERP.API.Controllers
 
                 return Ok(new
                 {
-                    message = "Inicio de sesión exitoso",
+                    message = "Successfully logged in",
                     token = result.Token,
                     user = new
                     {
@@ -67,7 +67,7 @@ namespace MiniERP.API.Controllers
 
             return Ok(new
             {
-                message = "Registro exitoso"
+                message = "Successfully registered"
             });
         }
 
@@ -87,7 +87,7 @@ namespace MiniERP.API.Controllers
 
             await _changeUserRoleUseCase.Execute(request, adminId);
 
-            return Ok(new { message = "Rol actualizado correctamente" });
+            return Ok(new { message = "Successfully updated role" });
         }
 
         // -------------------------
@@ -101,7 +101,7 @@ namespace MiniERP.API.Controllers
 
             return Ok(new
             {
-                message = "Lista de usuarios",
+                message = "Users list",
                 data = users.Select(u => new
                 {
                     u.Id,
@@ -122,13 +122,13 @@ namespace MiniERP.API.Controllers
             var user = await _userRepository.GetById(id);
 
             if (user == null)
-                return NotFound(new { message = "Usuario no encontrado" });
+                return NotFound(new { message = "User not found" });
 
             if (user.Role == Roles.Admin)
             {
                 var adminCount = await _userRepository.CountAdmins();
                 if (adminCount <= 1)
-                    return BadRequest(new { message = "No se puede eliminar al último administrador" });
+                    return BadRequest(new { message = "Cannot delete the last administrator" });
             }
 
             await _userRepository.Delete(user);
@@ -139,10 +139,10 @@ namespace MiniERP.API.Controllers
                 actorUserId: adminId,
                 targetUserId: user.Id,
                 action: "DELETE_USER",
-                description: "Usuario eliminado"
+                description: "User deleted"
             );
 
-            return Ok(new { message = "Usuario eliminado correctamente" });
+            return Ok(new { message = "User deleted successfully" });
         }
     }
 }

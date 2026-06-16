@@ -16,7 +16,7 @@ namespace MiniERP.API.Filters
 
                 context.Result = new BadRequestObjectResult(new
                 {
-                    message = "Error de validación",
+                    message = "Validation failed",
                     errors
                 });
             }
