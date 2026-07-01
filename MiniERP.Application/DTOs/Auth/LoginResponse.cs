@@ -5,7 +5,7 @@ using MiniERP.Application.Interfaces;
 using MiniERP.Application.DTOs.Auth;
 using MiniERP.Core.Constants;
 
-namespace MiniERP.Application.UseCases.Auth;
+namespace MiniERP.Application.DTOs.Auth;
 public class LoginResponse
 {
     public string Token { get; set; } = string.Empty;

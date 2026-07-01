@@ -16,24 +16,20 @@ namespace MiniERP.API.Controllers
         private readonly RegisterUseCase _registerUseCase;
         private readonly LoginUseCase _loginUseCase;
         private readonly IUserRepository _userRepository;
-        private readonly ISecurityLogService _securityLogService;
-        private readonly ITokenService _tokenService;
         private readonly ChangeUserRoleUseCase _changeUserRoleUseCase;
-
+        private readonly DeleteUserUseCase _deleteUserUseCase;
         public AuthController(
             RegisterUseCase registerUseCase,
             LoginUseCase loginUseCase,
             IUserRepository userRepository,
-            ISecurityLogService securityLogService,
-            ITokenService tokenService,
-            ChangeUserRoleUseCase changeUserRoleUseCase)
+            ChangeUserRoleUseCase changeUserRoleUseCase,
+            DeleteUserUseCase deleteUserUseCase)
         {
             _registerUseCase = registerUseCase;
             _loginUseCase = loginUseCase;
             _userRepository = userRepository;
-            _securityLogService = securityLogService;
-            _tokenService = tokenService;
             _changeUserRoleUseCase = changeUserRoleUseCase;
+            _deleteUserUseCase = deleteUserUseCase;
         }
 
         // -------------------------
@@ -74,7 +70,7 @@ namespace MiniERP.API.Controllers
         // -------------------------
         // CAMBIAR ROL (SOLO ADMIN)
         // -------------------------
-        [Authorize(Roles = $"{Roles.Admin}")]
+        [Authorize(Roles = Roles.Admin)]
         [HttpPut("Change-Role")]
         public async Task<IActionResult> ChangeUserRole([FromBody] ChangeUserRoleRequest request)
         {
@@ -87,7 +83,10 @@ namespace MiniERP.API.Controllers
 
             await _changeUserRoleUseCase.Execute(request, adminId);
 
-            return Ok(new { message = "Successfully updated role" });
+            return Ok(new
+            {
+                message = "Successfully updated role"
+            });
         }
 
         // -------------------------
@@ -115,35 +114,20 @@ namespace MiniERP.API.Controllers
         // -------------------------
         // ELIMINAR USUARIO
         // -------------------------
-        [Authorize(Roles = $"{Roles.Admin}")]
+        [Authorize(Roles = Roles.Admin)]
         [HttpDelete("Users/{id:int}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = await _userRepository.GetById(id);
+            int adminId = int.Parse(User.FindFirst("id")!.Value);
 
-            if (user == null)
-                return NotFound(new { message = "User not found" });
+            await _deleteUserUseCase.Execute(adminId, id);
 
-            if (user.Role == Roles.Admin)
+            return Ok(new
             {
-                var adminCount = await _userRepository.CountAdmins();
-                if (adminCount <= 1)
-                    return BadRequest(new { message = "Cannot delete the last administrator" });
-            }
-
-            await _userRepository.Delete(user);
-
-            var adminId = int.Parse(User.FindFirst("id")!.Value);
-
-            await _securityLogService.LogAsync(
-                actorUserId: adminId,
-                targetUserId: user.Id,
-                action: "DELETE_USER",
-                description: "User deleted"
-            );
-
-            return Ok(new { message = "User deleted successfully" });
+                message = "User deleted successfully"
+            });
         }
+
         [Authorize]
         [HttpGet("me")]
         public IActionResult Me()

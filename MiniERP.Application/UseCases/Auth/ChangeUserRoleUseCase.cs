@@ -29,10 +29,9 @@ public class ChangeUserRoleUseCase
         var user = await _userRepository.GetById(request.UserId);
 
         if (user == null)
-            throw new BadRequestException("User not found");
+            throw new NotFoundException("User not found");
 
         user.Role = request.NewRole;
-
         await _userRepository.Update(user);
 
         await _securityLogService.LogAsync(
