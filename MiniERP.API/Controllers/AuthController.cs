@@ -15,21 +15,27 @@ namespace MiniERP.API.Controllers
     {
         private readonly RegisterUseCase _registerUseCase;
         private readonly LoginUseCase _loginUseCase;
-        private readonly IUserRepository _userRepository;
         private readonly ChangeUserRoleUseCase _changeUserRoleUseCase;
+        private readonly ChangePasswordUseCase _changePasswordUseCase;
         private readonly DeleteUserUseCase _deleteUserUseCase;
+        private readonly GetUsersUseCase _getUsersUseCase;
+        private readonly RegisterAdminUseCase _registerAdminUseCase;
         public AuthController(
             RegisterUseCase registerUseCase,
             LoginUseCase loginUseCase,
-            IUserRepository userRepository,
             ChangeUserRoleUseCase changeUserRoleUseCase,
-            DeleteUserUseCase deleteUserUseCase)
+            ChangePasswordUseCase changePasswordUseCase,
+            DeleteUserUseCase deleteUserUseCase,
+            GetUsersUseCase getUsersUseCase,
+            RegisterAdminUseCase registerAdminUseCase)
         {
             _registerUseCase = registerUseCase;
             _loginUseCase = loginUseCase;
-            _userRepository = userRepository;
             _changeUserRoleUseCase = changeUserRoleUseCase;
+            _changePasswordUseCase = changePasswordUseCase;
             _deleteUserUseCase = deleteUserUseCase;
+            _getUsersUseCase = getUsersUseCase;
+            _registerAdminUseCase = registerAdminUseCase;
         }
 
         // -------------------------
@@ -67,6 +73,19 @@ namespace MiniERP.API.Controllers
             });
         }
 
+        [Authorize(Roles = Roles.Admin)]
+        [HttpPost("Register-Admin")]
+        public async Task<IActionResult> RegisterAdmin(RegisterRequest request)
+        {
+            int adminId = int.Parse(User.FindFirst("id")!.Value);
+
+            await _registerAdminUseCase.Execute(request, adminId);
+
+            return Ok(new
+            {
+                message = "Administrator registered successfully"
+            });
+        }
         // -------------------------
         // CAMBIAR ROL (SOLO ADMIN)
         // -------------------------
@@ -92,22 +111,16 @@ namespace MiniERP.API.Controllers
         // -------------------------
         // LISTAR USUARIOS
         // -------------------------
-        [Authorize(Roles = $"{Roles.Admin}")]
+        [Authorize(Roles = Roles.Admin)]
         [HttpGet("Users")]
         public async Task<IActionResult> GetUsers()
         {
-            var users = await _userRepository.GetAll();
+            var users = await _getUsersUseCase.Execute();
 
             return Ok(new
             {
                 message = "Users list",
-                data = users.Select(u => new
-                {
-                    u.Id,
-                    u.Email,
-                    u.Role,
-                    u.CreatedAt
-                })
+                data = users
             });
         }
 
@@ -125,6 +138,25 @@ namespace MiniERP.API.Controllers
             return Ok(new
             {
                 message = "User deleted successfully"
+            });
+        }
+        
+        [Authorize]
+        [HttpPut("Change-Password")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+        {
+            var userIdClaim = User.FindFirst("id")?.Value;
+
+            if (string.IsNullOrWhiteSpace(userIdClaim))
+                return Unauthorized();
+
+            int userId = int.Parse(userIdClaim);
+
+            await _changePasswordUseCase.Execute(request, userId);
+
+            return Ok(new
+            {
+                message = "Password changed successfully"
             });
         }
 

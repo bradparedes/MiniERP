@@ -58,8 +58,10 @@ builder.Services.AddScoped<ISecurityLogService, SecurityLogService>();
 builder.Services.AddScoped<LoginUseCase>();
 builder.Services.AddScoped<RegisterUseCase>();
 builder.Services.AddScoped<ChangeUserRoleUseCase>();
-
-
+builder.Services.AddScoped<GetUsersUseCase>();
+builder.Services.AddScoped<DeleteUserUseCase>();
+builder.Services.AddScoped<RegisterAdminUseCase>();
+builder.Services.AddScoped<ChangePasswordUseCase>();
 
 // =====================
 // CONTROLLERS
