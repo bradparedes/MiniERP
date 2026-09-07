@@ -37,7 +37,7 @@ namespace MiniERP.Infrastructure.Data
                     .IsRequired();
 
                 entity.Property(u => u.CreatedAt)
-                    .HasDefaultValueSql("NOW()");
+                    .HasDefaultValueSql("GETDATE()");
             });
             
             modelBuilder.Entity<Product>()

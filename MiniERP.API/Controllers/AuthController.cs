@@ -20,6 +20,7 @@ namespace MiniERP.API.Controllers
         private readonly DeleteUserUseCase _deleteUserUseCase;
         private readonly GetUsersUseCase _getUsersUseCase;
         private readonly RegisterAdminUseCase _registerAdminUseCase;
+
         public AuthController(
             RegisterUseCase registerUseCase,
             LoginUseCase loginUseCase,
@@ -39,6 +40,16 @@ namespace MiniERP.API.Controllers
         }
 
         // -------------------------
+        // HELPERS
+        // -------------------------
+        private bool TryGetAuthenticatedUserId(out int userId)
+        {
+            userId = 0;
+            var userIdClaim = User.FindFirst("id")?.Value;
+            return !string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out userId);
+        }
+
+        // -------------------------
         // LOGIN
         // -------------------------
         [HttpPost("Login")]
@@ -48,9 +59,9 @@ namespace MiniERP.API.Controllers
 
             return Ok(new
             {
-            message = "Successfully logged in",
-            token = result.Token,
-            user = new
+                message = "Successfully logged in",
+                token = result.Token,
+                user = new
                 {
                     id = result.UserId,
                     email = result.Email,
@@ -77,7 +88,8 @@ namespace MiniERP.API.Controllers
         [HttpPost("Register-Admin")]
         public async Task<IActionResult> RegisterAdmin(RegisterRequest request)
         {
-            int adminId = int.Parse(User.FindFirst("id")!.Value);
+            if (!TryGetAuthenticatedUserId(out int adminId))
+                return Unauthorized(new { message = "Invalid or missing user identity in token" });
 
             await _registerAdminUseCase.Execute(request, adminId);
 
@@ -86,6 +98,7 @@ namespace MiniERP.API.Controllers
                 message = "Administrator registered successfully"
             });
         }
+
         // -------------------------
         // CAMBIAR ROL (SOLO ADMIN)
         // -------------------------
@@ -93,12 +106,8 @@ namespace MiniERP.API.Controllers
         [HttpPut("Change-Role")]
         public async Task<IActionResult> ChangeUserRole([FromBody] ChangeUserRoleRequest request)
         {
-            var userIdClaim = User.FindFirst("id")?.Value;
-
-            if (string.IsNullOrEmpty(userIdClaim))
-                return Unauthorized();
-
-            int adminId = int.Parse(userIdClaim);
+            if (!TryGetAuthenticatedUserId(out int adminId))
+                return Unauthorized(new { message = "Invalid or missing user identity in token" });
 
             await _changeUserRoleUseCase.Execute(request, adminId);
 
@@ -131,7 +140,8 @@ namespace MiniERP.API.Controllers
         [HttpDelete("Users/{id:int}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            int adminId = int.Parse(User.FindFirst("id")!.Value);
+            if (!TryGetAuthenticatedUserId(out int adminId))
+                return Unauthorized(new { message = "Invalid or missing user identity in token" });
 
             await _deleteUserUseCase.Execute(adminId, id);
 
@@ -141,16 +151,15 @@ namespace MiniERP.API.Controllers
             });
         }
         
+        // -------------------------
+        // CAMBIAR CONTRASEÑA
+        // -------------------------
         [Authorize]
         [HttpPut("Change-Password")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
-            var userIdClaim = User.FindFirst("id")?.Value;
-
-            if (string.IsNullOrWhiteSpace(userIdClaim))
-                return Unauthorized();
-
-            int userId = int.Parse(userIdClaim);
+            if (!TryGetAuthenticatedUserId(out int userId))
+                return Unauthorized(new { message = "Invalid or missing user identity in token" });
 
             await _changePasswordUseCase.Execute(request, userId);
 
@@ -160,6 +169,9 @@ namespace MiniERP.API.Controllers
             });
         }
 
+        // -------------------------
+        // PERFIL (ME)
+        // -------------------------
         [Authorize]
         [HttpGet("me")]
         public IActionResult Me()
