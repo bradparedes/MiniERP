@@ -11,7 +11,11 @@ namespace MiniERP.Core.Entities
         public string PasswordHash { get; set; } = null!;
 
         public string Role { get; set; } = Roles.User + "," + Roles.Admin; // Admin o User
-        
+        public string Name { get; set; } = null!;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
 }
+
+
+

@@ -52,12 +52,14 @@ namespace MiniERP.Infrastructure.Services
             };
         }
 
+        // Categoría con validación insensible a mayúsculas/minúsculas
         public async Task<CategoryResponse> CreateAsync(CreateCategoryRequest request)
         {
             var nombreNormalizado = request.Name.Trim();
 
+            // Validación case-insensible:
             var exists = await _db.Categories
-                .AnyAsync(c => c.Name == nombreNormalizado && c.IsActive);
+                .AnyAsync(c => EF.Functions.Like(c.Name, nombreNormalizado) && c.IsActive);
 
             if (exists)
                 throw new InvalidOperationException("A category with that name already exists.");
@@ -107,7 +109,7 @@ namespace MiniERP.Infrastructure.Services
                 return false;
             if (tieneProductos)
                 throw new InvalidOperationException("The category cannot be deleted because it has associated products.");
-            // 🔐 Soft delete
+            // Soft delete
             category.IsActive = false;
             await _db.SaveChangesAsync();
 

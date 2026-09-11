@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using MiniERP.Core.Settings;
 using MiniERP.Application.Interfaces;
 using MiniERP.Infrastructure.Data;
@@ -26,8 +25,10 @@ namespace MiniERP.Infrastructure
             // Obtener sección JwtSettings
             var jwtSection = configuration.GetSection("JwtSettings");
 
-            // Configurar JwtSettings de forma correcta
+            // Configurar JwtSettings
             services.Configure<JwtSettings>(jwtSection);
+
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;
         }

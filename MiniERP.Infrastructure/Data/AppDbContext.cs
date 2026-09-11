@@ -24,11 +24,19 @@ namespace MiniERP.Infrastructure.Data
 
             modelBuilder.Entity<User>(entity =>
             {
+                entity.ToTable("Users");
                 entity.HasKey(u => u.Id);
 
                 entity.Property(u => u.Email)
                     .IsRequired()
-                    .HasMaxLength(150);
+                    .HasMaxLength(255);
+                
+                entity.Property(u => u.PasswordHash)
+                    .IsRequired();
+
+                entity.Property(u => u.Name)
+                    .IsRequired()
+                    .HasMaxLength(100);
 
                 entity.HasIndex(u => u.Email)
                     .IsUnique();
@@ -37,7 +45,12 @@ namespace MiniERP.Infrastructure.Data
                     .IsRequired();
 
                 entity.Property(u => u.CreatedAt)
-                    .HasDefaultValueSql("GETDATE()");
+                    .HasColumnType("timestamp with time zone")
+                    .HasDefaultValueSql("NOW()");
+                
+                entity.Property(u => u.UpdatedAt)
+                    .HasColumnType("timestamp with time zone")
+                    .HasDefaultValueSql("NOW()");
             });
             
             modelBuilder.Entity<Product>()
