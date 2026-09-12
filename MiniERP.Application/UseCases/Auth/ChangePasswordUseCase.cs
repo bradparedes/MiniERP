@@ -5,47 +5,52 @@ using MiniERP.Application.Exceptions;
 using MiniERP.Core.Entities;
 using MiniERP.Core.Interfaces;
 
-namespace MiniERP.Application.UseCases.Auth;
-
-public class ChangePasswordUseCase
+namespace MiniERP.Application.UseCases.Auth
 {
-    private readonly IUserRepository _userRepository;
-    private readonly ISecurityLogService _securityLogService;
-
-    public ChangePasswordUseCase(
-        IUserRepository userRepository,
-        ISecurityLogService securityLogService)
+    public class ChangePasswordUseCase
     {
-        _userRepository = userRepository;
-        _securityLogService = securityLogService;
-    }
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ISecurityLogService _securityLogService;
 
-    public async Task Execute(ChangePasswordRequest request, int userId)
-    {
-        if (string.IsNullOrWhiteSpace(request.CurrentPassword) ||
-            string.IsNullOrWhiteSpace(request.NewPassword))
+        public ChangePasswordUseCase(
+            IUnitOfWork unitOfWork,
+            ISecurityLogService securityLogService)
         {
-            throw new BadRequestException(
-                "Current password and new password are required.");
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _securityLogService = securityLogService ?? throw new ArgumentNullException(nameof(securityLogService));
         }
 
-        var user = await _userRepository.GetById(userId);
+        public async Task Execute(ChangePasswordRequest request, int userId)
+        {
+            if (string.IsNullOrWhiteSpace(request.CurrentPassword) ||
+                string.IsNullOrWhiteSpace(request.NewPassword))
+            {
+                throw new BadRequestException("Current password and new password are required.");
+            }
 
-        if (user == null)
-            throw new UnauthorizedException("User not found.");
+            // 1. Obtener usuario vía UnitOfWork usando el método real
+            var user = await _unitOfWork.Users.GetById(userId);
 
-        if (!PasswordHasher.Verify(request.CurrentPassword, user.PasswordHash))
-            throw new BadRequestException("Current password is incorrect.");
+            if (user == null)
+                throw new UnauthorizedException("User not found.");
 
-        user.PasswordHash = PasswordHasher.Hash(request.NewPassword);
+            // 2. Verificar contraseña actual usando el método Hash de tu utilidad
+            if (user.PasswordHash != PasswordHasher.Hash(request.CurrentPassword))
+                throw new BadRequestException("Current password is incorrect.");
 
-        await _userRepository.Update(user);
+            // 3. Encriptar y actualizar la nueva contraseña
+            user.PasswordHash = PasswordHasher.Hash(request.NewPassword);
 
-        await _securityLogService.LogAsync(
-            actorUserId: user.Id,
-            targetUserId: user.Id,
-            action: "CHANGE_PASSWORD",
-            description: "User changed their password."
-        );
+            // 4. Persistir cambios de forma atómica en PostgreSQL
+            await _unitOfWork.SaveChangesAsync();
+
+            // 5. Registrar log de seguridad con la firma nativa correcta
+            await _securityLogService.LogAsync(
+                userId,
+                userId,
+                "CHANGE_PASSWORD",
+                "User changed their password."
+            );
+        }
     }
 }

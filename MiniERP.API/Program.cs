@@ -16,6 +16,7 @@ using MiniERP.API.Filters;
 using System.Security.Claims;
 using MiniERP.Application.UseCases.Auth;
 using MiniERP.Infrastructure.Repositories;
+using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +51,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Interfaces del Core
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // Registra TODO Infrastructure (ProductoService, DbContext, etc.)
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -134,6 +136,9 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
+
+builder.Services.AddMediatR(typeof(MiniERP.Application.Commands.Auth.RegisterAdminCommand).Assembly);
+
 
 var app = builder.Build();
 
