@@ -1,5 +1,8 @@
+using System;
+using System.Threading.Tasks;
 using MiniERP.Core.Interfaces;
 using MiniERP.Core.Constants;
+using MiniERP.Core.Entities;
 using MiniERP.Application.DTOs.Auth;
 using MiniERP.Application.Exceptions;
 
@@ -8,14 +11,17 @@ namespace MiniERP.Application.UseCases.Auth;
 public class ChangeUserRoleUseCase
 {
     private readonly IUserRepository _userRepository;
+    private readonly IUnitOfWork _unitOfWork;
     private readonly ISecurityLogService _securityLogService;
 
     public ChangeUserRoleUseCase(
         IUserRepository userRepository,
+        IUnitOfWork unitOfWork,
         ISecurityLogService securityLogService)
     {
         _userRepository = userRepository;
-        _securityLogService = securityLogService;
+        _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+        _securityLogService = securityLogService ?? throw new ArgumentNullException(nameof(securityLogService));
     }
 
     public async Task Execute(ChangeUserRoleRequest request, int adminId)
@@ -26,13 +32,14 @@ public class ChangeUserRoleUseCase
         if (request.NewRole != Roles.Admin && request.NewRole != Roles.User)
             throw new BadRequestException("Invalid role");
 
-        var user = await _userRepository.GetById(request.UserId);
+        var user = await _unitOfWork.Users.GetById(request.UserId);
 
         if (user == null)
             throw new NotFoundException("User not found");
 
         user.Role = request.NewRole;
-        await _userRepository.Update(user);
+
+        await _unitOfWork.SaveChangesAsync();
 
         await _securityLogService.LogAsync(
             actorUserId: adminId,
@@ -42,3 +49,4 @@ public class ChangeUserRoleUseCase
         );
     }
 }
+
