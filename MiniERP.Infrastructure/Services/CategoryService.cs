@@ -1,8 +1,12 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Application.DTOs.Categories;
 using MiniERP.Application.Requests.Categories;
 using MiniERP.Application.Interfaces;
 using MiniERP.Core.Entities;
+using MiniERP.Core.Interfaces; 
 using MiniERP.Infrastructure.Data;
 
 namespace MiniERP.Infrastructure.Services
@@ -10,10 +14,12 @@ namespace MiniERP.Infrastructure.Services
     public class CategoryService : ICategoryService
     {
         private readonly AppDbContext _db;
+        private readonly IUnitOfWork _unitOfWork; // Declarar la Unidad de Trabajo
 
-        public CategoryService(AppDbContext db)
+        public CategoryService(AppDbContext db, IUnitOfWork unitOfWork) // Inyectar en el constructor
         {
-            _db = db;
+            _db = db ?? throw new ArgumentNullException(nameof(db));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
         public async Task<List<CategoryResponse>> GetAllAsync()
@@ -52,12 +58,10 @@ namespace MiniERP.Infrastructure.Services
             };
         }
 
-        // Categoría con validación insensible a mayúsculas/minúsculas
         public async Task<CategoryResponse> CreateAsync(CreateCategoryRequest request)
         {
             var nombreNormalizado = request.Name.Trim();
 
-            // Validación case-insensible:
             var exists = await _db.Categories
                 .AnyAsync(c => EF.Functions.Like(c.Name, nombreNormalizado) && c.IsActive);
 
@@ -73,7 +77,7 @@ namespace MiniERP.Infrastructure.Services
             };
 
             _db.Categories.Add(category);
-            await _db.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(); // Usar UnitOfWork para guardar
 
             return new CategoryResponse
             {
@@ -96,7 +100,7 @@ namespace MiniERP.Infrastructure.Services
             category.Description = request.Description;
             category.IsActive = request.IsActive;
 
-            await _db.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(); // Usar UnitOfWork para guardar
             return true;
         }
 
@@ -109,9 +113,9 @@ namespace MiniERP.Infrastructure.Services
                 return false;
             if (tieneProductos)
                 throw new InvalidOperationException("The category cannot be deleted because it has associated products.");
-            // Soft delete
-            category.IsActive = false;
-            await _db.SaveChangesAsync();
+
+            category.IsActive = false; // Soft delete
+            await _unitOfWork.SaveChangesAsync(); // Usar UnitOfWork para guardar
 
             return true;
         }

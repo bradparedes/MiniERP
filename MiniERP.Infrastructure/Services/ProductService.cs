@@ -3,6 +3,7 @@ using MiniERP.Application.DTOs.Products;
 using MiniERP.Application.Requests.Products;
 using MiniERP.Application.Interfaces;
 using MiniERP.Core.Entities;
+using MiniERP.Core.Interfaces; // Importar la interfaz de UnitOfWork
 using MiniERP.Infrastructure.Data;
 using MiniERP.Infrastructure.Services;
 
@@ -11,13 +12,15 @@ namespace MiniERP.Infrastructure.Services
     public class ProductService : IProductService
     {
         private readonly AppDbContext _db;
+        private readonly IUnitOfWork _unitOfWork; // Declarar la Unidad de Trabajo
 
-        public ProductService(AppDbContext db)
+        public ProductService(AppDbContext db, IUnitOfWork unitOfWork) // Inyectar en el constructor
         {
-            _db = db;
+            _db = db ?? throw new ArgumentNullException(nameof(db));
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
         }
 
-        // 📦 Obtener todos los productos activos
+        // Obtener todos los productos activos
         public async Task<List<ProductResponse>> GetAllAsync()
         {
             return await _db.Products
@@ -39,7 +42,7 @@ namespace MiniERP.Infrastructure.Services
                 .ToListAsync();
         }
 
-        // 🔍 Obtener producto por Id
+        // Obtener producto por Id
         public async Task<ProductResponse?> GetByIdAsync(int id)
         {
             var product = await _db.Products
@@ -63,7 +66,7 @@ namespace MiniERP.Infrastructure.Services
             };
         }
 
-        // 🆕 Crear producto
+        // Crear producto
         public async Task<ProductResponse> CreateAsync(CreateProductRequest request)
         {
             var category = await _db.Categories
@@ -84,7 +87,7 @@ namespace MiniERP.Infrastructure.Services
             };
 
             _db.Products.Add(product);
-            await _db.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(); // Guardar mediante UnitOfWork
 
             return new ProductResponse
             {
@@ -100,7 +103,7 @@ namespace MiniERP.Infrastructure.Services
             };
         }
 
-        // ✏️ Actualizar producto
+        // Actualizar producto
         public async Task<ProductResponse> UpdateAsync(int id, UpdateProductRequest request)
         {
             var product = await _db.Products.FindAsync(id);
@@ -121,7 +124,7 @@ namespace MiniERP.Infrastructure.Services
             product.CategoryId = request.CategoryId;
             product.IsActive = request.IsActive;
 
-            await _db.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(); // Guardar mediante UnitOfWork
 
             return new ProductResponse
             {
@@ -137,7 +140,7 @@ namespace MiniERP.Infrastructure.Services
             };
         }
 
-        // 🗑️ Eliminar producto (soft delete)
+        // Eliminar producto (soft delete)
         public async Task<bool> DeleteAsync(int id)
         {
             var product = await _db.Products.FindAsync(id);
@@ -145,7 +148,7 @@ namespace MiniERP.Infrastructure.Services
                 return false;
 
             product.IsActive = false;
-            await _db.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(); // Guardar mediante UnitOfWork
             return true;
         }
     }
