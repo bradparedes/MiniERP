@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using MiniERP.Core.Entities;
 
 namespace MiniERP.Core.Interfaces;
@@ -8,6 +9,6 @@ public interface IUserRepository
     Task<List<User>> GetAll();
     Task Add(User user);
     Task Update(User user);
-    Task Delete(User user);
+    void Delete(User user);
     Task<int> CountAdmins();
 }

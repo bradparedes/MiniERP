@@ -1,191 +1,43 @@
+using System.Threading.Tasks;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MiniERP.Core.Entities;
-using MiniERP.Core.Interfaces;
-using MiniERP.Core.Constants;
-using MiniERP.Application.DTOs.Auth;
-using MiniERP.Application.Requests;
-using MiniERP.Application.UseCases.Auth;
+using MiniERP.Application.Commands.Auth;
 
 namespace MiniERP.API.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly RegisterUseCase _registerUseCase;
-        private readonly LoginUseCase _loginUseCase;
-        private readonly ChangeUserRoleUseCase _changeUserRoleUseCase;
-        private readonly ChangePasswordUseCase _changePasswordUseCase;
-        private readonly DeleteUserUseCase _deleteUserUseCase;
-        private readonly GetUsersUseCase _getUsersUseCase;
-        private readonly RegisterAdminUseCase _registerAdminUseCase;
+        private readonly IMediator _mediator;
 
-        public AuthController(
-            RegisterUseCase registerUseCase,
-            LoginUseCase loginUseCase,
-            ChangeUserRoleUseCase changeUserRoleUseCase,
-            ChangePasswordUseCase changePasswordUseCase,
-            DeleteUserUseCase deleteUserUseCase,
-            GetUsersUseCase getUsersUseCase,
-            RegisterAdminUseCase registerAdminUseCase)
+        public AuthController(IMediator mediator)
         {
-            _registerUseCase = registerUseCase;
-            _loginUseCase = loginUseCase;
-            _changeUserRoleUseCase = changeUserRoleUseCase;
-            _changePasswordUseCase = changePasswordUseCase;
-            _deleteUserUseCase = deleteUserUseCase;
-            _getUsersUseCase = getUsersUseCase;
-            _registerAdminUseCase = registerAdminUseCase;
+            _mediator = mediator;
         }
 
-        // -------------------------
-        // HELPERS
-        // -------------------------
-        private bool TryGetAuthenticatedUserId(out int userId)
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginCommand command)
         {
-            userId = 0;
-            var userIdClaim = User.FindFirst("id")?.Value;
-            return !string.IsNullOrEmpty(userIdClaim) && int.TryParse(userIdClaim, out userId);
+            var result = await _mediator.Send(command);
+            return Ok(result);
         }
 
-        // -------------------------
-        // LOGIN
-        // -------------------------
-        [HttpPost("Login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterCommand command)
         {
-            var result = await _loginUseCase.Execute(request);
-
-            return Ok(new
-            {
-                message = "Successfully logged in",
-                token = result.Token,
-                user = new
-                {
-                    id = result.UserId,
-                    email = result.Email,
-                    role = result.Role
-                }
-            });
+            var result = await _mediator.Send(command);
+            return Ok(result);
         }
 
-        // -------------------------
-        // REGISTER
-        // -------------------------
-        [HttpPost("Register")]
-        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        [HttpDelete("users/{userId}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteUser(int userId, [FromQuery] int adminId)
         {
-            await _registerUseCase.Execute(request);
-
-            return Ok(new
-            {
-                message = "Successfully registered"
-            });
-        }
-
-        [Authorize(Roles = Roles.Admin)]
-        [HttpPost("Register-Admin")]
-        public async Task<IActionResult> RegisterAdmin(RegisterRequest request)
-        {
-            if (!TryGetAuthenticatedUserId(out int adminId))
-                return Unauthorized(new { message = "Invalid or missing user identity in token" });
-
-            await _registerAdminUseCase.Execute(request, adminId);
-
-            return Ok(new
-            {
-                message = "Administrator registered successfully"
-            });
-        }
-
-        // -------------------------
-        // CAMBIAR ROL (SOLO ADMIN)
-        // -------------------------
-        [Authorize(Roles = Roles.Admin)]
-        [HttpPut("Change-Role")]
-        public async Task<IActionResult> ChangeUserRole([FromBody] ChangeUserRoleRequest request)
-        {
-            if (!TryGetAuthenticatedUserId(out int adminId))
-                return Unauthorized(new { message = "Invalid or missing user identity in token" });
-
-            await _changeUserRoleUseCase.Execute(request, adminId);
-
-            return Ok(new
-            {
-                message = "Successfully updated role"
-            });
-        }
-
-        // -------------------------
-        // LISTAR USUARIOS
-        // -------------------------
-        [Authorize(Roles = Roles.Admin)]
-        [HttpGet("Users")]
-        public async Task<IActionResult> GetUsers()
-        {
-            var users = await _getUsersUseCase.Execute();
-
-            return Ok(new
-            {
-                message = "Users list",
-                data = users
-            });
-        }
-
-        // -------------------------
-        // ELIMINAR USUARIO
-        // -------------------------
-        [Authorize(Roles = Roles.Admin)]
-        [HttpDelete("Users/{id:int}")]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            if (!TryGetAuthenticatedUserId(out int adminId))
-                return Unauthorized(new { message = "Invalid or missing user identity in token" });
-
-            await _deleteUserUseCase.Execute(adminId, id);
-
-            return Ok(new
-            {
-                message = "User deleted successfully"
-            });
-        }
-        
-        // -------------------------
-        // CAMBIAR CONTRASEÑA
-        // -------------------------
-        [Authorize]
-        [HttpPut("Change-Password")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
-        {
-            if (!TryGetAuthenticatedUserId(out int userId))
-                return Unauthorized(new { message = "Invalid or missing user identity in token" });
-
-            await _changePasswordUseCase.Execute(request, userId);
-
-            return Ok(new
-            {
-                message = "Password changed successfully"
-            });
-        }
-
-        // -------------------------
-        // PERFIL (ME)
-        // -------------------------
-        [Authorize]
-        [HttpGet("me")]
-        public IActionResult Me()
-        {
-            var userId = User.FindFirst("id")?.Value;
-            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
-            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-
-            return Ok(new
-            {
-                id = userId,
-                email,
-                role
-            });
+            var command = new DeleteUserCommand(adminId, userId);
+            var result = await _mediator.Send(command);
+            return Ok(result);
         }
     }
 }

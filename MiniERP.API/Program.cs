@@ -57,13 +57,9 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ISecurityLogService, SecurityLogService>();
 // Registrar UseCases de Aplication
-builder.Services.AddScoped<LoginUseCase>();
-builder.Services.AddScoped<RegisterUseCase>();
-builder.Services.AddScoped<ChangeUserRoleUseCase>();
+
 builder.Services.AddScoped<GetUsersUseCase>();
-builder.Services.AddScoped<DeleteUserUseCase>();
 builder.Services.AddScoped<RegisterAdminUseCase>();
-builder.Services.AddScoped<ChangePasswordUseCase>();
 
 // =====================
 // CONTROLLERS

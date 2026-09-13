@@ -41,15 +41,12 @@ public class UserRepository : IUserRepository
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
     }
-
-    public async Task Delete(User user)
-    {
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
-    }
-
     public async Task<int> CountAdmins()
     {
         return await _context.Users.CountAsync(u => u.Role == "Admin");
+    }
+    public void Delete(User user)
+    {
+        _context.Users.Remove(user);
     }
 }

@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using MiniERP.Core.Constants;
 
 namespace MiniERP.Core.Entities
@@ -14,6 +18,7 @@ namespace MiniERP.Core.Entities
         public string Name { get; set; } = null!;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+        public bool IsActive { get; set; } = true;
     }
 }
 
