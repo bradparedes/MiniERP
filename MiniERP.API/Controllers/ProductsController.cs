@@ -18,7 +18,7 @@ namespace MiniERP.API.Controllers
             _mediator = mediator;
         }
 
-        // 📦 Obtener todos los productos activos
+        // Obtener todos los productos activos
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -27,7 +27,7 @@ namespace MiniERP.API.Controllers
             return Ok(result);
         }
 
-        // 🆕 Crear un nuevo producto
+        // Crear un nuevo producto
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
         {
@@ -36,7 +36,7 @@ namespace MiniERP.API.Controllers
             return Ok(result);
         }
 
-        // 🗑️ Eliminar producto (Soft Delete)
+        // Eliminar producto (Soft Delete)
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
