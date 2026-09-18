@@ -42,13 +42,16 @@ Para este proyecto se optó por un diseño de **Arquitectura Limpia (Clean Archi
 ## 📸 Capturas del Proyecto (Swagger UI Activo)
 
 ### 🔐 Autenticación e Interactividad JWT
-<img width="1920" height="988" alt="login" src="https://github.com/user-attachments/assets/e79f0a91-4b26-4b0e-8fe6-2d80e97974f2" />
+<img width="1913" height="358" alt="Botón-Authorize-Swagger" src="https://github.com/user-attachments/assets/7631047a-4a8c-4344-9da9-7df337286ce9" />
 
-### 📦 Gestión de Productos y Pistas de Auditoría
-<img width="1920" height="988" alt="ProductosYSecurityLogs" src="https://github.com/user-attachments/assets/69217dc7-aeb9-43d1-a689-f6889b65ab83" />
 
-### 📊 Modelado de Datos de la API
-<img width="1920" height="988" alt="Schemas" src="https://github.com/user-attachments/assets/502baf30-78c4-49e7-a749-5d82f7642cbd" />
+### 📦 Gestión de Productos, Categorías y Auditoría Desacoplada (MediatR)
+<img width="1913" height="946" alt="Endpoints-MiniERP-en-Swagger" src="https://github.com/user-attachments/assets/9217264f-3522-4a52-87a7-dd47210a59df" />
+
+### 📊 Modelado de Comandos y Esquemas de Datos (CQRS)
+<img width="1918" height="948" alt="Schemas-SwaggerUI" src="https://github.com/user-attachments/assets/c7a7f32f-2858-491d-9bb6-041a2eeadda1" />
+
+
 
 ---
 
@@ -108,3 +111,6 @@ http://localhost:5121/swagger/index.html
 
 - **LinkedIn:** [Bradley Castañeda Paredes](https://www.linkedin.com/in/bradley-casta%C3%B1eda-paredes-1577b5236/)
 - **GitHub:** [@bradparedes](https://github.com/bradparedes)
+
+
+
