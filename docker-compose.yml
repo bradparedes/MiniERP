@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  minierp-db:
+    image: postgres:16-alpine
+    container_name: minierp_postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: minierp_user
+      POSTGRES_PASSWORD: minierppasssword
+      POSTGRES_DB: minierp_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - minierp_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  minierp_postgres_data:
