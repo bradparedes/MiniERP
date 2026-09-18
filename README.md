@@ -66,25 +66,33 @@ Para este proyecto se optó por un diseño de **Arquitectura Limpia (Clean Archi
 
 ---
 
-## 🛠️ Instalación y Configuración (Entorno Linux / Ubuntu)
+## 🛠️ Instalación y Configuración (Multiplataforma con Docker)
 
-1. Clonar el repositorio:
+El proyecto está preparado para automatizar su entorno de base de datos mediante **Docker Compose**, lo que permite levantarlo tanto en **Linux (Ubuntu)** como en **Windows (Docker Desktop)** sin necesidad de configurar servidores de forma manual.
+
+1. **Clonar el repositorio:**
 ```bash
-git clone https://github.com/bradparedes/MiniERP.git
+git clone https://github.com
 cd MiniERP
 ```
 
-2. Restaurar dependencias y drivers de PostgreSQL en Infrastructure:
+2. **Levantar la base de datos PostgreSQL en un contenedor de Docker:**
+```bash
+docker compose up -d
+```
+*(Este comando descargará la imagen oficial aislada de Postgres y activará el puerto 5432 de forma automática).*
+
+3. **Restaurar las dependencias de .NET:**
 ```bash
 dotnet restore
 ```
 
-3. Aplicar las migraciones a tu base de datos local de Postgres:
+4. **Aplicar las migraciones para estructurar las tablas en Docker:**
 ```bash
 dotnet ef database update --project MiniERP.Infrastructure --startup-project MiniERP.API
 ```
 
-4. Compilar y ejecutar la API:
+5. **Compilar y ejecutar la Web API:**
 ```bash
 dotnet run --project MiniERP.API
 ```
@@ -93,14 +101,15 @@ dotnet run --project MiniERP.API
 
 ## 🧪 Cómo Probar la API de Forma Interactiva
 
-1. Una vez ejecutado el proyecto, abre la documentación interactiva en tu navegador:
+1. Una vez ejecutado el proyecto con `dotnet run`, abre la documentación interactiva en tu navegador:
 ```text
 http://localhost:5121/swagger/index.html
 ```
 2. Ejecuta el endpoint `POST /api/auth/login` con tus credenciales de prueba.
 3. Copia el token JWT de la respuesta JSON.
 4. Haz clic en el botón superior **"Authorize" (Candado de Seguridad)**, escribe la palabra `Bearer` seguida de un espacio, pega tu token y haz clic en Authorize.
-5. Los endpoints protegidos por políticas y roles quedarán completamente desbloqueados para pruebas en tiempo real.
+5. Los endpoints protegidos por políticas y roles (CQRS / MediatR) quedarán completamente desbloqueados para pruebas en tiempo real.
+
 
 ---
 
