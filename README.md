@@ -72,7 +72,7 @@ El proyecto está preparado para automatizar su entorno de base de datos mediant
 
 1. **Clonar el repositorio:**
 ```bash
-git clone https://github.com/MiniERP.git
+git clone https://github.com/bradparedes/MiniERP.git
 cd MiniERP
 ```
 
