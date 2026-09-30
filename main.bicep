@@ -34,6 +34,19 @@ resource webApp 'Microsoft.Web/sites@2022-09-01' = {
           name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
           value: 'false'
         }
+        // 🛡️ Banderas de robustez de memoria para evitar error en contenedores Linux
+        {
+          name: 'DOTNET_EnableWriteXorExecute'
+          value: '0'
+        }
+        {
+          name: 'DOTNET_EnableDiagnostics'
+          value: '0'
+        }
+        {
+          name: 'COMPlus_EnableDiagnostics'
+          value: '0'
+        }
       ]
     }
   }
