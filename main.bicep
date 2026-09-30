@@ -8,44 +8,27 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-09-01' = {
   }
   kind: 'linux'
   properties: {
-    reserved: true // Obligatorio para Linux
+    reserved: true 
   }
 }
 
-// 2. Definimos la Web API basada en tu contenedor Docker
+// 2. Definimos la Web API basada en Código Nativo .NET 8
 resource webApp 'Microsoft.Web/sites@2022-09-01' = {
   name: 'minierp-api-brad-paredes'
   location: 'southcentralus'
-  kind: 'app,linux,container'
+  kind: 'app,linux'
   properties: {
     serverFarmId: appServicePlan.id
     siteConfig: {
-      linuxFxVersion: 'DOCKER|docker.io/bradparedes/minierp-api:latest'
+      linuxFxVersion: 'DOTNET|8.0' // 🚀 Cambiado a código nativo puro de .NET 8
       appSettings: [
         {
           name: 'ASPNETCORE_ENVIRONMENT'
           value: 'Production'
         }
         {
-          name: 'WEBSITES_PORT'
-          value: '8080'
-        }
-        {
           name: 'WEBSITES_ENABLE_APP_SERVICE_STORAGE'
           value: 'false'
-        }
-        // 🛡️ Banderas de robustez de memoria para evitar error en contenedores Linux
-        {
-          name: 'DOTNET_EnableWriteXorExecute'
-          value: '0'
-        }
-        {
-          name: 'DOTNET_EnableDiagnostics'
-          value: '0'
-        }
-        {
-          name: 'COMPlus_EnableDiagnostics'
-          value: '0'
         }
       ]
     }
