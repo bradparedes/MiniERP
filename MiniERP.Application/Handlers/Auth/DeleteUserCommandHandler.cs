@@ -1,49 +1,42 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using MiniERP.Application.Commands.Auth;
-using MiniERP.Core.Entities;
 using MiniERP.Core.Interfaces;
+using MiniERP.Core.Entities;
+using Microsoft.Extensions.Logging;
 
-namespace MiniERP.Application.Handlers.Auth
+namespace MiniERP.Application.Handlers.Auth;
+
+public class DeleteUserCommandHandler(
+    IUnitOfWork unitOfWork,
+    ISecurityLogService securityLogService,
+    ILogger<DeleteUserCommandHandler> _logger) 
+    : IRequestHandler<DeleteUserCommand, bool>
 {
-    public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, bool>
+    public async Task<bool> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ISecurityLogService _securityLogService;
-
-        public DeleteUserCommandHandler(
-            IUnitOfWork unitOfWork,
-            ISecurityLogService securityLogService)
+        var userToDelete = await unitOfWork.Users.GetByIdAsync(request.UserId, cancellationToken);
+        
+        if (userToDelete == null)
         {
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _securityLogService = securityLogService ?? throw new ArgumentNullException(nameof(securityLogService));
+            _logger.LogWarning("DeleteUser failed: User {UserId} not found.", request.UserId);
+            throw new KeyNotFoundException("User not found.");
         }
 
-        public async Task<bool> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
-        {
-            // 1. Búsqueda del usuario afectado por ID usando tu método real
-            var userToDelete = await _unitOfWork.Users.GetById(request.UserId);
-            if (userToDelete == null)
-                throw new KeyNotFoundException("User not found.");
+        await unitOfWork.Users.DeleteAsync(userToDelete, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
-            // 2. Marcar el usuario para eliminación en memoria (SIN AWAIT porque es void)
-            _unitOfWork.Users.Delete(userToDelete);
+        await securityLogService.LogAsync(
+            request.AdminId,
+            request.UserId,
+            "DELETE_USER",
+            $"Admin {request.AdminId} deleted user {request.UserId}."
+        );
 
-            // 3. Persistir los cambios físicamente en PostgreSQL de forma asíncrona
-            await _unitOfWork.SaveChangesAsync();
-
-            // 4. Registrar auditoría asíncrona con la firma limpia de 4 parámetros
-            await _securityLogService.LogAsync(
-                request.AdminId,
-                request.UserId,
-                "DELETE_USER",
-                $"Admin {request.AdminId} soft-deleted user {request.UserId}."
-            );
-
-            return true;
-        }
+        _logger.LogInformation("User {UserId} deleted by Admin {AdminId}.", request.UserId, request.AdminId);
+        
+        return true;
     }
 }

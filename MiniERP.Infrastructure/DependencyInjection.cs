@@ -17,6 +17,10 @@ namespace MiniERP.Infrastructure
             IConfiguration configuration)
         {
             // Configurar DbContext
+            services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<ISecurityLogService, SecurityLogService>();
+            services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IUserRepository, UserRepository>();

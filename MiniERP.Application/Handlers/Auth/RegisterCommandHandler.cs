@@ -3,53 +3,51 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using MiniERP.Application.Commands.Auth;
-using MiniERP.Core.Entities;
 using MiniERP.Core.Interfaces;
+using MiniERP.Core.Entities; // User + PasswordHasher
 using MiniERP.Core.Constants;
+using Microsoft.Extensions.Logging;
 
-namespace MiniERP.Application.Handlers.Auth
+namespace MiniERP.Application.Handlers.Auth;
+
+public class RegisterCommandHandler(
+    IUnitOfWork unitOfWork,
+    ISecurityLogService securityLogService,
+    ILogger<RegisterAdminCommandHandler> _logger) 
+    : IRequestHandler<RegisterCommand, bool>
 {
-    public class RegisterCommandHandler : IRequestHandler<RegisterCommand, bool>
+    public async Task<bool> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly ISecurityLogService _securityLogService;
+        var email = request.Email?.Trim();
 
-        public RegisterCommandHandler(
-            IUnitOfWork unitOfWork,
-            ISecurityLogService securityLogService)
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(request.Password))
+            throw new ArgumentException("Invalid data");
+
+        var existing = await unitOfWork.Users.GetByEmailAsync(email, cancellationToken);
+        if (existing != null)
+            throw new InvalidOperationException("Email already registered.");
+
+        var user = new User
         {
-            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-            _securityLogService = securityLogService ?? throw new ArgumentNullException(nameof(securityLogService));
-        }
+            Name = request.Name,
+            Email = email,
+            PasswordHash = PasswordHasher.Hash(request.Password),
+            Role = Roles.User,
+            CreatedAt = DateTime.UtcNow
+        };
 
-        public async Task<bool> Handle(RegisterCommand request, CancellationToken cancellationToken)
-        {
-            // Corregido a GetByEmail
-            var emailExists = await _unitOfWork.Users.GetByEmail(request.Email) != null;
-            if (emailExists)
-                throw new InvalidOperationException("Email already registered.");
+        await unitOfWork.Users.AddAsync(user, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken); // ✅ Token incluido
 
-            var user = new User
-            {
-                Name = request.Name,
-                Email = request.Email,
-                PasswordHash = PasswordHasher.Hash(request.Password),
-                Role = Roles.User,
-                CreatedAt = DateTime.UtcNow
-            };
+        await securityLogService.LogAsync(
+            0,
+            user.Id,
+            "REGISTER_USER",
+            $"New user registered: {user.Email}"
+        );
 
-            await _unitOfWork.Users.Add(user);
-            await _unitOfWork.SaveChangesAsync();
+        _logger.LogInformation("Admin registered successfully: {Email}", email);
 
-            // Firma limpia de 4 parámetros
-            await _securityLogService.LogAsync(
-                user.Id,
-                user.Id,
-                "REGISTER_USER",
-                $"New user registered: {user.Email}"
-            );
-
-            return true;
-        }
+        return true;
     }
 }

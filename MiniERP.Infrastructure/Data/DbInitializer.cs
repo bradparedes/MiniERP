@@ -14,8 +14,8 @@ namespace MiniERP.Infrastructure.Data
 
             var admin = new User
             {
-                Email = "admin@minierp.com",
-                PasswordHash = Hash("Admin123!"),
+                Email = "pruebasadmin@tester.com",
+                PasswordHash = Hash("admin12345678"),
                 Role = "Admin"
             };
 

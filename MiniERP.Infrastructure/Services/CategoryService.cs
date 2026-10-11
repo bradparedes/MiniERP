@@ -1,122 +1,122 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using MiniERP.Application.DTOs.Categories;
-using MiniERP.Application.Requests.Categories;
+using MiniERP.Application.Exceptions;
 using MiniERP.Application.Interfaces;
+using MiniERP.Application.Requests.Categories;
+using MiniERP.Application.DTOs.Categories;
 using MiniERP.Core.Entities;
-using MiniERP.Core.Interfaces; 
-using MiniERP.Infrastructure.Data;
+using MiniERP.Core.Interfaces;
 
 namespace MiniERP.Infrastructure.Services
 {
     public class CategoryService : ICategoryService
     {
-        private readonly AppDbContext _db;
-        private readonly IUnitOfWork _unitOfWork; // Declarar la Unidad de Trabajo
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CategoryService(AppDbContext db, IUnitOfWork unitOfWork) // Inyectar en el constructor
+        public CategoryService(IUnitOfWork unitOfWork)
         {
-            _db = db ?? throw new ArgumentNullException(nameof(db));
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
-        }
-
-        public async Task<List<CategoryResponse>> GetAllAsync()
-        {
-            return await _db.Categories
-                .AsNoTracking()
-                .Where(c => c.IsActive)
-                .OrderBy(c => c.Name)
-                .Select(c => new CategoryResponse
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Description = c.Description,
-                    IsActive = c.IsActive,
-                    CreatedAt = c.CreatedAt
-                })
-                .ToListAsync();
-        }
-
-        public async Task<CategoryResponse?> GetByIdAsync(int id)
-        {
-            var category = await _db.Categories
-                .AsNoTracking()
-                .FirstOrDefaultAsync(c => c.Id == id && c.IsActive);
-
-            if (category == null)
-                return null;
-
-            return new CategoryResponse
-            {
-                Id = category.Id,
-                Name = category.Name,
-                Description = category.Description,
-                IsActive = category.IsActive,
-                CreatedAt = category.CreatedAt
-            };
         }
 
         public async Task<CategoryResponse> CreateAsync(CreateCategoryRequest request)
         {
-            var nombreNormalizado = request.Name.Trim();
+            // Get all active categories to check for duplicate name (case-insensitive)
+            var allCategories = await _unitOfWork.Categories.GetAllAsync();
+            var duplicate = allCategories
+                .Any(c => c.IsActive && 
+                          c.Name.Trim().Equals(request.Name.Trim(), StringComparison.OrdinalIgnoreCase));
 
-            var exists = await _db.Categories
-                .AnyAsync(c => EF.Functions.Like(c.Name, nombreNormalizado) && c.IsActive);
-
-            if (exists)
-                throw new InvalidOperationException("A category with that name already exists.");
+            if (duplicate)
+                throw new InvalidOperationException($"Category '{request.Name}' already exists.");
 
             var category = new Category
             {
-                Name = nombreNormalizado,
-                Description = request.Description,
+                Name = request.Name.Trim(),
+                Description = request.Description?.Trim(),
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
 
-            _db.Categories.Add(category);
-            await _unitOfWork.SaveChangesAsync(); // Usar UnitOfWork para guardar
+            await _unitOfWork.Categories.AddAsync(category);
+            await _unitOfWork.SaveChangesAsync();
 
             return new CategoryResponse
             {
                 Id = category.Id,
                 Name = category.Name,
-                Description = category.Description,
                 IsActive = category.IsActive,
                 CreatedAt = category.CreatedAt
             };
         }
 
+        public async Task<CategoryResponse?> GetByIdAsync(int id)
+        {
+            var category = await _unitOfWork.Categories.GetByIdAsync(id);
+            return category == null 
+                ? null 
+                : new CategoryResponse
+                {
+                    Id = category.Id,
+                    Name = category.Name,
+                    IsActive = category.IsActive,
+                    CreatedAt = category.CreatedAt
+                };
+        }
+
+        public async Task<List<CategoryResponse>> GetAllAsync()
+        {
+            var categories = await _unitOfWork.Categories.GetAllAsync();
+            return categories.Select(c => new CategoryResponse
+            {
+                Id = c.Id,
+                Name = c.Name,
+                IsActive = c.IsActive,
+                CreatedAt = c.CreatedAt
+            }).ToList();
+        }
+
         public async Task<bool> UpdateAsync(int id, UpdateCategoryRequest request)
         {
-            var category = await _db.Categories.FindAsync(id);
+            var category = await _unitOfWork.Categories.GetByIdAsync(id);
+            if (category == null)
+                throw new NotFoundException("Category not found.");
 
-            if (category == null || !category.IsActive)
-                return false;
+            // Check for duplicate name (excluding current category)
+            var allCategories = await _unitOfWork.Categories.GetAllAsync();
+            var duplicate = allCategories
+                .Any(c => c.IsActive && c.Id != id && 
+                          c.Name.Trim().Equals(request.Name.Trim(), StringComparison.OrdinalIgnoreCase));
+
+            if (duplicate)
+                throw new InvalidOperationException($"Category '{request.Name}' already exists.");
 
             category.Name = request.Name.Trim();
-            category.Description = request.Description;
-            category.IsActive = request.IsActive;
+            category.Description = request.Description?.Trim();
 
-            await _unitOfWork.SaveChangesAsync(); // Usar UnitOfWork para guardar
+            await _unitOfWork.Categories.UpdateAsync(category);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var category = await _db.Categories.FindAsync(id);
-            var tieneProductos = await _db.Products.AnyAsync(p => p.CategoryId == id);
+            var category = await _unitOfWork.Categories.GetByIdAsync(id);
+            if (category == null)
+                throw new NotFoundException("Category not found.");
 
-            if (category == null || !category.IsActive)
-                return false;
-            if (tieneProductos)
-                throw new InvalidOperationException("The category cannot be deleted because it has associated products.");
+            // Validación de negocio: no eliminar si tiene productos activos vinculados
+            var allProducts = await _unitOfWork.Products.GetAllAsync();
+            var hasProducts = allProducts.Any(p => p.CategoryId == id && p.IsActive);
 
-            category.IsActive = false; // Soft delete
-            await _unitOfWork.SaveChangesAsync(); // Usar UnitOfWork para guardar
+            if (hasProducts)
+                throw new InvalidOperationException("Category has associated products.");
 
+            // Soft Delete unificado
+            category.IsActive = false;
+            await _unitOfWork.Categories.UpdateAsync(category);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
     }

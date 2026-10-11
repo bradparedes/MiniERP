@@ -1,21 +1,19 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MiniERP.Core.Interfaces;
 using MiniERP.Core.Settings;
-using MiniERP.Application.Interfaces;
 using MiniERP.Infrastructure.Services;
 using MiniERP.Infrastructure;
-using MiniERP.Infrastructure.Data;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MiniERP.Application.Validators.Products;
 using System.Text;
 using MiniERP.API.Filters;
 using System.Security.Claims;
-using MiniERP.Application.UseCases.Auth;
 using MiniERP.Infrastructure.Repositories;
+using MiniERP.Infrastructure.Data;
+using MiniERP.API.Middleware;
 using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,13 +37,6 @@ builder.Services.Configure<JwtSettings>(
     builder.Configuration.GetSection("JwtSettings"));
 
 // =====================
-// DATABASE
-// =====================
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
-);
-
-// =====================
 // SERVICES
 // =====================
 
@@ -54,12 +45,6 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // Registra TODO Infrastructure (ProductoService, DbContext, etc.)
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<ISecurityLogService, SecurityLogService>();
-// Registrar UseCases de Aplication
-
-builder.Services.AddScoped<GetUsersUseCase>();
-builder.Services.AddScoped<RegisterAdminUseCase>();
 
 // =====================
 // CONTROLLERS

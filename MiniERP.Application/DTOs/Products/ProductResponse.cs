@@ -1,3 +1,4 @@
+namespace MiniERP.Application.DTOs.Products;
 public class ProductResponse
 {
     public int Id { get; set; }
@@ -7,7 +8,7 @@ public class ProductResponse
     public int Stock { get; set; }
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
-
+    public DateTime? UpdatedAt { get; set; }
     public int CategoryId { get; set; }
     public string CategoryName { get; set; } = null!;
 }

@@ -1,14 +1,18 @@
+using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using MiniERP.Core.Entities;
 
 namespace MiniERP.Core.Interfaces;
+
 public interface IUserRepository
 {
-    Task<User?> GetByEmail(string email);
-    Task<User?> GetById(int id);
-    Task<List<User>> GetAll();
-    Task Add(User user);
-    Task Update(User user);
-    void Delete(User user);
-    Task<int> CountAdmins();
+    Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
+    Task<User?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task<List<User>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task AddAsync(User user, CancellationToken cancellationToken = default);
+    Task UpdateAsync(User user, CancellationToken cancellationToken = default);
+    Task DeleteAsync(User user, CancellationToken cancellationToken = default);
+    Task<int> CountAdminsAsync(CancellationToken cancellationToken = default);
 }

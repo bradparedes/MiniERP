@@ -1,52 +1,52 @@
-using System;
-using System.Net;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MiniERP.Application.Exceptions;
+using System;
+using System.Threading.Tasks;
 
-public class ExceptionMiddleware
+namespace MiniERP.API.Middleware
 {
-    private readonly RequestDelegate _next;
-    private readonly ILogger<ExceptionMiddleware> _logger; // 1. Sistema de Logs inyectado
-
-    public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
+    public class ExceptionMiddleware
     {
-        _next = next;
-        _logger = logger;
-    }
+        private readonly RequestDelegate _next;
+        private readonly ILogger<ExceptionMiddleware> _logger;
 
-    public async Task Invoke(HttpContext context) // Mantiene la firma original Invoke
-    {
-        try
+        public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
         {
-            await _next(context);
+            _next = next;
+            _logger = logger;
         }
-        catch (UnauthorizedException ex)
+
+        public async Task InvokeAsync(HttpContext context)
         {
-            context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-            await context.Response.WriteAsJsonAsync(new { message = ex.Message });
-            _logger.LogWarning("Unauthorized access: {Message}", ex.Message);
-        }
-        catch (BadRequestException ex)
-        {
-            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-            await context.Response.WriteAsJsonAsync(new { message = ex.Message });
-            _logger.LogWarning("Bad request constraint: {Message}", ex.Message);
-        }
-        catch (NotFoundException ex) // Captura tus excepciones 404 NotFound
-        {
-            context.Response.StatusCode = (int)HttpStatusCode.NotFound;
-            await context.Response.WriteAsJsonAsync(new { message = ex.Message });
-            _logger.LogWarning("Resource not found: {Message}", ex.Message);
-        }
-        catch (Exception ex) // Captura errores críticos del sistema (ej: Postgres caído)
-        {
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            await context.Response.WriteAsJsonAsync(new { message = "Internal server error" });
-            
-            // Registra el error completo en la consola de Ubuntu con todo su Stack Trace
-            _logger.LogError(ex, "A critical unhandled exception occurred in the API pipeline.");
+            try
+            {
+                await _next(context);
+            }
+            catch (UnauthorizedException ex)
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                await context.Response.WriteAsJsonAsync(new { Error = "Unauthorized" });
+                _logger.LogWarning(ex.Message);
+            }
+            catch (BadRequestException ex)
+            {
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await context.Response.WriteAsJsonAsync(new { Error = "Bad Request" });
+                _logger.LogWarning(ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                await context.Response.WriteAsJsonAsync(new { Error = "Resource not found" });
+                _logger.LogInformation(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                await context.Response.WriteAsJsonAsync(new { Error = "Internal Server Error" });
+                _logger.LogError(ex, "An unhandled exception occurred.");
+            }
         }
     }
 }
