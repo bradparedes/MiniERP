@@ -62,16 +62,17 @@ public class AuthController : ControllerBase
     // =====================
     [Authorize(Roles = Roles.Admin)]
     [HttpDelete("users/{userId}")]
-    public async Task<IActionResult> DeleteUser(int userId)
+    public async Task<IActionResult> DeleteUser(int userId, [FromQuery] int adminId)
     {
         // ✅ AdminId se extrae del Token JWT, NO de la URL ni Query
         var adminIdClaim = User.FindFirst("id")?.Value;
-        if (!int.TryParse(adminIdClaim, out var adminId))
+        if (!int.TryParse(adminIdClaim, out var adminIdFromToken) || adminIdFromToken != adminId)
             return Unauthorized(new { Error = "Invalid admin token." });
 
         var command = new DeleteUserCommand(adminId, userId);
-        await _mediator.Send(command);
-        return Ok(new { message = "User deleted successfully." });
+        var result =await _mediator.Send(command);
+        
+        return Ok(result);
     }
 
     // =====================

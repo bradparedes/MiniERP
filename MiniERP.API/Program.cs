@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using MiniERP.Core.Interfaces;
 using MiniERP.Core.Settings;
-using MiniERP.Infrastructure.Services;
 using MiniERP.Infrastructure;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -11,10 +9,11 @@ using MiniERP.Application.Validators.Products;
 using System.Text;
 using MiniERP.API.Filters;
 using System.Security.Claims;
-using MiniERP.Infrastructure.Repositories;
 using MiniERP.Infrastructure.Data;
 using MiniERP.API.Middleware;
 using MediatR;
+using MiniERP.Application.Validators.Categories;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,9 +39,6 @@ builder.Services.Configure<JwtSettings>(
 // SERVICES
 // =====================
 
-// Interfaces del Core
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 // Registra TODO Infrastructure (ProductoService, DbContext, etc.)
 builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -61,6 +57,9 @@ builder.Services.AddFluentValidationClientsideAdapters();
 // Registro de validadores
 builder.Services.AddValidatorsFromAssemblyContaining<CreateProductRequestValidator>();
 builder.Services.AddValidatorsFromAssemblyContaining<GetProductByIdRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateProductRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateCategoryRequestValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<UpdateCategoryRequestValidator>();
 
 // =====================
 // AUTH JWT
@@ -96,7 +95,7 @@ builder.Services.AddSwaggerGen(c =>
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "Agrega: Bearer {tu_token}",
+        Description = "Add: Bearer {token} to authorize",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey

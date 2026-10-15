@@ -1,5 +1,4 @@
 using FluentValidation;
-using MiniERP.Application.DTOs.Products;
 using MiniERP.Application.Requests.Products;
 
 namespace MiniERP.Application.Validators.Products
@@ -10,7 +9,7 @@ namespace MiniERP.Application.Validators.Products
         {
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage("Name is required.")
-                .MaximumLength(100).WithMessage("Name cannot exceed 100 characters.");
+                .MaximumLength(200).WithMessage("Name cannot exceed 200 characters.");
 
             RuleFor(x => x.Description)
                 .MaximumLength(500).WithMessage("Description cannot exceed 500 characters.");
@@ -22,7 +21,7 @@ namespace MiniERP.Application.Validators.Products
                 .GreaterThanOrEqualTo(0).WithMessage("Stock cannot be negative.");
 
             RuleFor(x => x.CategoryId)
-                .GreaterThan(0).WithMessage("A valid category must be specified.");
+                .GreaterThan(0).WithMessage("Category ID must be valid.");
 
             RuleFor(x => x.IsActive)
                 .NotNull().WithMessage("The product's active status must be specified.");
