@@ -8,9 +8,13 @@
 ## Arquitectura y Patrones de Diseño Avanzados
 
 Para este proyecto se optó por un diseño de **Arquitectura Limpia (Clean Architecture)** acoplado a patrones corporativos de alta escalabilidad, dividiendo la solución en capas bien definidas:
+
 - **MiniERP.Core (Dominio):** Contiene las entidades puras de negocio (User, Product, Category), constantes globales y abstracciones puras (interfaces de repositorios y servicios). Cero dependencias externas.
+
 - **MiniERP.Application (Lógica de Negocio):** Implementa el patrón **CQRS (Command Query Responsibility Segregation)** a través de **MediatR v11**. Los controladores de la API están 100% desacoplados; solo envían Comandos inmutables (`records`) y Consultas, delegando la ejecución a Handlers independientes.
+
 - **MiniERP.Infrastructure (Datos y Servicios):** Administra la persistencia nativa en **PostgreSQL** mediante Entity Framework Core. Implementa el patrón **Unit of Work** para coordinar transacciones atómicas (ACID), asegurando que los múltiples impactos en la base de datos se completen exitosamente en conjunto o se reviertan por completo.
+
 - **MiniERP.API (Presentación):** Fachada HTTP delgada (Thin Controllers) encargada exclusivamente de la serialización, ruteo y validación de tokens.
 
 
@@ -19,10 +23,14 @@ Para este proyecto se optó por un diseño de **Arquitectura Limpia (Clean Archi
 ## Seguridad y Robustez de Producción
 
 - **Autenticación Estricta:** Implementación de tokens **JWT Bearer Auth** con validación segura de claims.
+
 - **Seguridad por Diseño:** Control de acceso granular basado en Roles (**Admin** / **User**) y políticas de protección del último administrador del sistema.
+
 - **Trazabilidad Empresarial (Auditoría):** Servicio asíncrono de logs de seguridad (`ISecurityLogService`) integrado directamente en la tubería de MediatR para registrar acciones críticas con ID del actor y objetivo.
+
 - **Middleware Global de Excepciones:** Interceptor centralizado de errores en el Pipeline de ASP.NET Core que captura fallas controladas (400 BadRequest, 404 NotFound, 401 Unauthorized) y errores críticos del sistema, implementando **ILogger estructurado** para guardar el *Stack Trace* en la consola de Linux sin exponer datos sensibles al cliente frontend.
 
+- **Validación Automática:** Integración de FluentValidation con pipeline behavior de MediatR para validación temprana de comandos y consultas.
 
 ---
 
@@ -30,34 +38,66 @@ Para este proyecto se optó por un diseño de **Arquitectura Limpia (Clean Archi
 
 ### Autenticación y Usuarios (MediatR Commands)
 - `POST /api/auth/login` → Envía `LoginCommand`, valida credenciales y retorna JWT.
+
 - `POST /api/auth/register` → Envía `RegisterCommand` para usuarios estándar con hash automático.
+
 - `POST /api/auth/register-admin` → Protegido por Rol Admin. Registra nuevos administradores.
+
 - `DELETE /api/users/{id}` → Protegido por Rol Admin. Ejecuta un borrado seguro de la entidad.
+
+- `GET /api/auth/me` → Retorna perfil del usuario autenticado (JWT).
+
+- `PUT /api/auth/change-password` → Cambio de contraseña del usuario autenticado.
+
+- `PUT /api/auth/change-role` → Protegido por Admin. Cambio de rol de usuario.
+
+- `GET /api/auth/users` → Protegido por Admin. Lista paginada de usuarios.
+
+---
+
 ### Gestión de Inventario y Negocio
 - `GET /api/product` → Envía `GetAllProductsQuery` optimizado con `.AsNoTracking()`.
+
+- `GET /api/product/{id}` → GetProductByIdQuery retorna ProductResponse.
+
 - `POST /api/product` → Envía `CreateProductCommand` con validación transaccional.
-- `GET /api/category` → Consulta asíncrona de categorías del ERP.
+
+- `PUT /api/product/{id}` → UpdateProductCommand validado, actualiza campos y categoría.
+
+- `DELETE /api/product/{id}` → DeleteProductCommand Soft Delete (IsActive = false).
+
+---
+
+### Gestión de Categorías (CQRS Completo)
+
+- `GET /api/category` → GetAllCategoriesQuery lista categorías activas.
+
+- `GET /api/category/{id}` → GetCategoryByIdQuery retorna CategoryResponse.
+
+- `POST /api/category` → CreateCategoryCommand validación única de nombre.
+
+- `PUT /api/category/{id}` → UpdateCategoryCommand actualiza nombre/descripción.
+
+- `DELETE /api/category/{id}` → DeleteCategoryCommand Soft Delete con validación de integridad referencial.
 
 ---
 
 ## Capturas del Proyecto (Swagger UI Activo)
 
 ### Autenticación e Interactividad JWT
-<img width="1916" height="885" alt="Screenshot From 2026-10-14 12-46-47" src="https://github.com/user-attachments/assets/9cdfd44e-688c-4dd1-ad38-8d6a2eecc713" />
+<img width="1917" height="877" alt="Screenshot From 2026-10-14 21-54-53" src="https://github.com/user-attachments/assets/11756014-f231-4c02-a0f1-0e7e38618321" />
 
 ### Gestión de Productos, Categorías y Auditoría Desacoplada (MediatR)
-<img width="1916" height="714" alt="Screenshot From 2026-10-14 12-47-15" src="https://github.com/user-attachments/assets/26a27de8-3898-4017-a4fd-159fedcebb5d" />
+<img width="1917" height="904" alt="Screenshot From 2026-10-14 21-55-29" src="https://github.com/user-attachments/assets/a5725168-4ea1-4063-aee9-0ba1a382e141" />
 
 ### Modelado de Comandos y Esquemas de Datos (CQRS)
-<img width="1916" height="905" alt="Screenshot From 2026-10-14 12-50-26" src="https://github.com/user-attachments/assets/3f8e0e34-7607-4713-9a44-08fba83a3de4" />
+<img width="1917" height="907" alt="Screenshot From 2026-10-14 21-56-10" src="https://github.com/user-attachments/assets/96fde431-2f08-4cf1-85bd-527201a90a78" />
 
-<img width="1916" height="210" alt="Screenshot From 2026-10-14 12-50-54" src="https://github.com/user-attachments/assets/c813b717-7d5c-47fb-bd01-073a2b0f8b91" />
-
+<img width="1917" height="681" alt="Screenshot From 2026-10-14 21-56-33" src="https://github.com/user-attachments/assets/7c0c88b3-e627-4576-8f5a-832b25d47e4a" />
 
 ---
 
 ## Estado del Proyecto
-
 - [x] Arquitectura de Software Base (Clean Architecture)
 - [x] Desacoplamiento Total de Controladores (MediatR + CQRS)
 - [x] Transaccionalidad Atómica y Coordinada (Unit of Work)
@@ -69,6 +109,9 @@ Para este proyecto se optó por un diseño de **Arquitectura Limpia (Clean Archi
 - [x] DTOs de respuesta generados (CategoryResponse, ProductResponse)
 - [x] Excepciones de dominio definidas (ConflictException, NotFoundException, etc.)
 - [x] DependencyInjection centralizado en `AddInfrastructure`
+- [x] **CRUD Completo Productos y Categorías (GET by ID, PUT, DELETE) vía MediatR**
+- [x] **Validaciones FluentValidation integradas en Pipeline MediatR**
+- [x] **Endpoints de Perfil y Administración de Usuarios completos**
 - [ ] Módulos ERP Expandidos (Inventario Avanzado, Facturación, Clientes)
 
 ---
@@ -107,16 +150,24 @@ dotnet run --project MiniERP.API
 ---
 
 ## Cómo Probar la API de Forma Interactiva
-
 1. Una vez ejecutado el proyecto con `dotnet run`, abre la documentación interactiva en tu navegador:
 ```text
 http://localhost:5121/swagger/index.html
 ```
-2. Ejecuta el endpoint `POST /api/auth/login` con tus credenciales de prueba.
-3. Copia el token JWT de la respuesta JSON.
-4. Haz clic en el botón superior **"Authorize" (Candado de Seguridad)**, escribe la palabra `Bearer` seguida de un espacio, pega tu token y haz clic en Authorize.
-5. Los endpoints protegidos por políticas y roles (CQRS / MediatR) quedarán completamente desbloqueados para pruebas en tiempo real.
 
+2. Ejecuta el endpoint `POST /api/auth/login` con las credenciales de prueba:
+```json
+{
+  "email": "admin@tester.com",
+  "password": "admin12345678"
+}
+```
+
+3. Copia el token `JWT` de la respuesta JSON.
+
+4. Haz clic en el botón superior **"Authorize" (Candado de Seguridad)**, escribe `Bearer ` seguido de un espacio, pega tu token y haz clic en **Authorize**.
+
+5. Los endpoints protegidos por políticas y roles (CQRS / MediatR) quedarán completamente desbloqueados para pruebas en tiempo real.
 
 ---
 
@@ -127,6 +178,3 @@ http://localhost:5121/swagger/index.html
 
 - **LinkedIn:** [Bradley Castañeda Paredes](https://www.linkedin.com/in/bradley-casta%C3%B1eda-paredes-1577b5236/)
 - **GitHub:** [@bradparedes](https://github.com/bradparedes)
-
-
-
