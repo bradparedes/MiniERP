@@ -158,7 +158,7 @@ http://localhost:5121/swagger/index.html
 2. Ejecuta el endpoint `POST /api/auth/login` con las credenciales de prueba:
 ```json
 {
-  "email": "admin@tester.com",
+  "email": "pruebasadmin@tester.com",
   "password": "admin12345678"
 }
 ```
